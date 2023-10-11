@@ -13,6 +13,9 @@ Author : Nishtha Paul
 #include <pthread.h>
 
 #include "instructions.h"
+#include "./module/admin-ops.h"
+#include "./module/student-ops.h"
+#include "./module/faculty-ops.h"
 
 #define PORT 8080
 #define MAX_CONNECTIONS 5
@@ -89,12 +92,27 @@ void *handle_client(void *arg) {
     else {
         bzero(read_buffer, sizeof(read_buffer));
         bytes_rcvd = read(client_socket_fd, read_buffer, sizeof(read_buffer));
-        bytes_rcvd = -1;
         if (bytes_rcvd == -1) {
             perror("Error while reading from client");
         } else {
             int choice = atoi(read_buffer);
             printf("Choice: %d \n", choice);
+            switch(choice) {
+                case 1 : 
+                    handle_admin_operations(); // send connfd
+                    break;
+                case 2 :
+                    handle_student_operations(); // send connfd
+                    break;
+                case 3 :
+                    handle_faculty_operations(); // send connfd
+                    break;
+                default :
+                    bzero(write_buffer, sizeof(write_buffer));
+                    strcpy(write_buffer, "Invalid option was selected !!!");
+                    write(client_socket_fd, write_buffer, strlen(write_buffer));
+                    break;
+            }
         }
     }
 
