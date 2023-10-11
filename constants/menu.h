@@ -42,4 +42,17 @@
 "======================================================\n" \
 "Please enter your choice : "
 
+#define FACULTY_MENU \
+"================= Select the Operation ===============\n" \
+"=                                                    =\n" \
+"=  1.  View offered courses                          =\n" \
+"=  2.  Add a new course                              =\n" \
+"=  3.  Remove a offered course                       =\n" \
+"=  4.  View a course details                         =\n" \
+"=  5.  Update course details                         =\n" \
+"=  6.  Change password                               =\n" \
+"=                                                    =\n" \
+"======================================================\n" \
+"Please enter your choice : "
+
 #endif
