@@ -51,18 +51,26 @@ int main() {
 }
 
 void connection_handler(int socket_fd) {
+
     char read_buffer[1000], write_buffer[1000];
+    int bytes_rcvd, bytes_sent;
 
-    bzero(read_buffer, sizeof(read_buffer));
-    bzero(write_buffer, sizeof(write_buffer));
-    
-    // Send data to the server
-    printf("Enter a message to send to the server: ");
-    fgets(read_buffer, sizeof(read_buffer), stdin);
+    do {
+        bzero(read_buffer, sizeof(read_buffer));
+        bzero(write_buffer, sizeof(write_buffer));
+        
+        bytes_rcvd = read(socket_fd, read_buffer, sizeof(read_buffer));
+        if (bytes_rcvd < 0) {
+            perror("Error while reading from client socket");
+        } else if (bytes_rcvd == 0) {
+            printf("No error received from server! Closing the connection to the server now!\n");
+        } else {
+            printf("%s\n", read_buffer);
 
-    write(socket_fd, read_buffer, strlen(read_buffer));
+            // fgets(write_buffer, sizeof(write_buffer), stdin);
+            scanf("%[^\n]", write_buffer);
 
-    // Receive and display the response from the server
-    read(socket_fd, write_buffer, sizeof(write_buffer));
-    printf("Server Response: %s", write_buffer);
+            write(socket_fd, write_buffer, strlen(write_buffer));
+        }
+    } while (bytes_rcvd > 0);
 }

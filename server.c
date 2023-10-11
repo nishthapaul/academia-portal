@@ -12,6 +12,8 @@ Author : Nishtha Paul
 #include <arpa/inet.h>
 #include <pthread.h>
 
+#include "instructions.h"
+
 #define PORT 8080
 #define MAX_CONNECTIONS 5
 
@@ -72,21 +74,31 @@ int main() {
 
 void *handle_client(void *arg) {
     int client_socket_fd = *((int *)arg);
-    char read_buffer[1000];
-    int bytes_received;
+    char read_buffer[1000], write_buffer[1000];
+    int bytes_rcvd, bytes_sent;
 
-    bzero(read_buffer, sizeof(read_buffer));
+    bzero(write_buffer, sizeof(write_buffer));
 
-    // Receive data from the client
-    bytes_received = read(client_socket_fd, read_buffer, sizeof(read_buffer));
-    printf("bytes recvd %d \n", bytes_received);
-    if (bytes_received <= 0) {
-        printf("Error while reading from client");
-    } else {
-        // Send the received data back to the client.
-        write(client_socket_fd, read_buffer, bytes_received);
+    strcpy(write_buffer, INTRODUCTION);
+    strcat(write_buffer, "\n");
+    strcat(write_buffer, ROLE_MENU);
+
+    bytes_sent = write(client_socket_fd, write_buffer, strlen(write_buffer));
+    if (bytes_sent == -1)
+        perror("Error while sending first introduction to the user!");
+    else {
+        bzero(read_buffer, sizeof(read_buffer));
+        bytes_rcvd = read(client_socket_fd, read_buffer, sizeof(read_buffer));
+        bytes_rcvd = -1;
+        if (bytes_rcvd == -1) {
+            perror("Error while reading from client");
+        } else {
+            int choice = atoi(read_buffer);
+            printf("Choice: %d \n", choice);
+        }
     }
 
+    printf("Terminating connection to client!\n");
     close(client_socket_fd);
     pthread_exit(NULL);
 }
