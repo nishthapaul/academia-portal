@@ -21,11 +21,11 @@
 "=  1.  Add a Student                                 =\n" \
 "=  2.  View Student Details                          =\n" \
 "=  3.  Add a Faculty                                 =\n" \
-"=  2.  View Faculty Details                          =\n" \
-"=  1.  Activate a Student                            =\n" \
-"=  1.  De-Activate a Student                         =\n" \
-"=  2.  Modify Student Details                        =\n" \
-"=  2.  Modify Faculty Details                        =\n" \
+"=  4.  View Faculty Details                          =\n" \
+"=  5.  Activate a Student                            =\n" \
+"=  6.  De-Activate a Student                         =\n" \
+"=  7.  Modify Student Details                        =\n" \
+"=  8.  Modify Faculty Details                        =\n" \
 "=                                                    =\n" \
 "======================================================\n" \
 "Please enter your choice : "
