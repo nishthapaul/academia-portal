@@ -99,13 +99,13 @@ void *handle_client(void *arg) {
             printf("Choice: %d \n", choice);
             switch(choice) {
                 case 1 : 
-                    handle_admin_operations(); // send connfd
+                    handle_admin_operations(client_socket_fd); // send connfd
                     break;
                 case 2 :
-                    handle_student_operations(); // send connfd
+                    handle_student_operations(client_socket_fd); // send connfd
                     break;
                 case 3 :
-                    handle_faculty_operations(); // send connfd
+                    handle_faculty_operations(client_socket_fd); // send connfd
                     break;
                 default :
                     bzero(write_buffer, sizeof(write_buffer));
