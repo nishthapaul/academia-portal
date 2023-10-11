@@ -65,7 +65,7 @@ void connection_handler(int socket_fd) {
         } else if (bytes_rcvd == 0) {
             printf("No error received from server! Closing the connection to the server now!\n");
         } else {
-            printf("%s\n", read_buffer);
+            printf("%s", read_buffer);
 
             // fgets(write_buffer, sizeof(write_buffer), stdin);
             scanf("%[^\n]", write_buffer);
