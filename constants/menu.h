@@ -30,4 +30,16 @@
 "======================================================\n" \
 "Please enter your choice : "
 
+#define STUDENT_MENU \
+"================= Select the Operation ===============\n" \
+"=                                                    =\n" \
+"=  1.  View all courses                              =\n" \
+"=  2.  Enroll new course                             =\n" \
+"=  3.  View enrolled courses                         =\n" \
+"=  4.  De-enroll / Drop a course                     =\n" \
+"=  5.  Change password                               =\n" \
+"=                                                    =\n" \
+"======================================================\n" \
+"Please enter your choice : "
+
 #endif
