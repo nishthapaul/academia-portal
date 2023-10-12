@@ -12,7 +12,7 @@ Author : Nishtha Paul
 #include <arpa/inet.h>
 #include <pthread.h>
 
-#include "instructions.h"
+#include "./constants/menu.h"
 #include "./module/admin-ops.h"
 #include "./module/student-ops.h"
 #include "./module/faculty-ops.h"
