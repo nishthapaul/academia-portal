@@ -10,6 +10,7 @@
 #include "../dao/student-dao.h"
 
 int createStudent(int socket_fd);
+struct Student updateStudent(int socket_fd);
 
 void handle_admin_operations(int socket_fd) {
     printf("in handle_admin_operations \n");
@@ -59,6 +60,13 @@ void handle_admin_operations(int socket_fd) {
                 sprintf(write_buffer, STUDENT_DETAILS, student.std_id, student.name, student.age, student.email, student.password, student.no_of_courses_enrolled);
                 strcat(write_buffer, "\n");
                 break;
+            case 3 :
+                printf("Modify student details \n");
+                struct Student updatedStudent = updateStudent(socket_fd);
+                strcat(write_buffer, "Student details are updated successfully \n");
+                sprintf(write_buffer, STUDENT_DETAILS, updatedStudent.std_id, updatedStudent.name, updatedStudent.age, updatedStudent.email, updatedStudent.password, updatedStudent.no_of_courses_enrolled);
+                strcat(write_buffer, "\n");
+                break;
             default :
                 bzero(write_buffer, sizeof(write_buffer));
                 strcpy(write_buffer, "Invalid option was selected. Please try again. \n");
@@ -101,4 +109,68 @@ int createStudent(int socket_fd) {
     char email[50];
     strcpy(email, read_buffer);
     return insertStudent(name, age, email);
+}
+
+struct Student updateStudent(int socket_fd) {
+    char read_buffer[1000], write_buffer[1000];
+    int bytes_rcvd, bytes_sent;
+    bzero(write_buffer, sizeof(write_buffer));
+    bzero(read_buffer, sizeof(read_buffer));
+
+    strcat(write_buffer, "Enter the roll number of the student whose details \nyou want want to update: ");
+    if (write(socket_fd, write_buffer, strlen(write_buffer)) == -1) {
+        perror("Error while asking the client to enter roll no to update student details");
+    }
+    if (read(socket_fd, read_buffer, sizeof(read_buffer)) == -1) {
+        perror("Error while reading roll no of student from client");
+    }
+    int rollno;
+    sscanf(read_buffer, "MT%03d", &rollno);
+
+
+    bzero(write_buffer, sizeof(write_buffer));
+    bzero(read_buffer, sizeof(read_buffer));
+
+    strcat(write_buffer, UPDATE_STUDENT_MENU);
+    strcat(write_buffer, "\n");
+    strcat(write_buffer, "Choose the option to update student details: ");
+    if (write(socket_fd, write_buffer, strlen(write_buffer)) == -1) {
+        perror("Error while asking the client to enter which student details has to be updated");
+    }
+    if (read(socket_fd, read_buffer, sizeof(read_buffer)) == -1) {
+        perror("Error while reading which student details has to be updated from client");
+    }
+    int choice = atoi(read_buffer);
+
+
+    bzero(write_buffer, sizeof(write_buffer));
+    bzero(read_buffer, sizeof(read_buffer));
+
+    strcat(write_buffer, "Enter the value to be updated: ");
+    if (write(socket_fd, write_buffer, strlen(write_buffer)) == -1) {
+        perror("Error while asking the client to enter the value to be updated");
+    }
+    if (read(socket_fd, read_buffer, sizeof(read_buffer)) == -1) {
+        perror("Error while reading the value to be updated from client");
+    }
+
+    struct Student updatedStudent;
+    switch(choice) {
+        case 1:
+            printf("updating name \n");
+            updatedStudent = updateStudentName(rollno, read_buffer);
+            break;
+        case 2:
+            printf("updating age \n");
+            updatedStudent = updateStudentAge(rollno, atoi(read_buffer));
+            break;
+        case 3:
+            printf("updating email \n");
+            updatedStudent = updateStudentEmail(rollno, read_buffer);
+            break;
+        default:
+            printf("wrong choice\n");
+            break;
+    }
+    return updatedStudent;
 }
