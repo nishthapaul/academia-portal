@@ -10,7 +10,6 @@
 void generateStudentId(char* new_id);
 void generateStudentPassword(char* password);
 void incrementRollNumber(const char* input_rollno, char* new_rollno, int size);
-struct Student getStudentDetails(char roll_no[]);
 
 int insertStudent(char name[], int age, char email[]) {
     char new_id[6], password[50];
@@ -50,9 +49,10 @@ struct Student getStudentDetails(char rollno_string[]) {
 	}
     int rollno;
     sscanf(rollno_string, "MT%d", &rollno);
-    lseek(fd, rollno * sizeof(struct Student), SEEK_SET);
+    lseek(fd, (rollno - 1) * sizeof(struct Student), SEEK_SET);
     struct Student student;
     read(fd, &student, sizeof(struct Student));
+    close(fd);
     return student;
 }
 
