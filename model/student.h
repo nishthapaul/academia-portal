@@ -1,8 +1,8 @@
 #ifndef STUDENT_MODEL
 #define STUDENT_MODEL
 
-struct student {
-    char std_id[5]; //MTxxx
+struct Student {
+    char std_id[6]; //MTxxx\0
     char name[50];
     int age;
     char email[50];
