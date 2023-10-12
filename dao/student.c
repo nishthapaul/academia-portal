@@ -89,3 +89,54 @@ void incrementRollNumber(const char* input_rollno, char* new_rollno, int size) {
     snprintf(new_rollno, size, "%s%03d", prefix, numeric_part);
     printf("New roll: %s\n", new_rollno);
 }
+
+struct Student updateStudentName(int rollno, char name[]) {
+    int fd = open("/Users/nishthapaul/iiitb/academia-portal/data/student.txt", O_RDWR);
+    if (fd == -1) {
+		perror("Error in opening the file student.txt. \n");
+	}
+    struct Student student;
+
+    lseek(fd, (rollno - 1) * sizeof(struct Student), SEEK_SET);
+    read(fd, &student, sizeof(struct Student));
+    strcpy(student.name, name);
+    lseek(fd, -1 * sizeof(struct Student), SEEK_CUR);
+    write(fd, &student, sizeof(struct Student));
+
+    close(fd);
+    return student;
+}
+
+struct Student updateStudentAge(int rollno, int age) {
+    int fd = open("/Users/nishthapaul/iiitb/academia-portal/data/student.txt", O_RDWR);
+    if (fd == -1) {
+		perror("Error in opening the file student.txt. \n");
+	}
+    struct Student student;
+
+    lseek(fd, (rollno - 1) * sizeof(struct Student), SEEK_SET);
+    read(fd, &student, sizeof(struct Student));
+    student.age = age;
+    lseek(fd, -1 * sizeof(struct Student), SEEK_CUR);
+    write(fd, &student, sizeof(struct Student));
+
+    close(fd);
+    return student;
+}
+
+struct Student updateStudentEmail(int rollno, char email[]) {
+    int fd = open("/Users/nishthapaul/iiitb/academia-portal/data/student.txt", O_RDWR);
+    if (fd == -1) {
+		perror("Error in opening the file student.txt. \n");
+	}
+    struct Student student;
+
+    lseek(fd, (rollno - 1) * sizeof(struct Student), SEEK_SET);
+    read(fd, &student, sizeof(struct Student));
+    strcpy(student.email, email);
+    lseek(fd, -1 * sizeof(struct Student), SEEK_CUR);
+    write(fd, &student, sizeof(struct Student));
+
+    close(fd);
+    return student;
+}
