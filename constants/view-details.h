@@ -9,6 +9,7 @@
 "= Email : %s \n" \
 "= Password : %s \n" \
 "= No. of Courses Enrolled : %d \n" \
+"= Account status : %s \n" \
 "======================================================"
 
 #endif

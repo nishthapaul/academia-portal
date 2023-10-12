@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 #include "admin-ops.h"
 #include "../constants/menu.h"
@@ -11,6 +12,7 @@
 
 int createStudent(int socket_fd);
 struct Student updateStudent(int socket_fd);
+struct Student updateStudentActivateStatus(int socket_fd, bool isActive);
 
 void handle_admin_operations(int socket_fd) {
     printf("in handle_admin_operations \n");
@@ -35,6 +37,8 @@ void handle_admin_operations(int socket_fd) {
         bzero(write_buffer, sizeof(write_buffer));
         bzero(read_buffer, sizeof(read_buffer));
 
+        struct Student student;
+
         switch(choice) {
             case 1 : 
                 printf("Add a student \n");
@@ -56,15 +60,27 @@ void handle_admin_operations(int socket_fd) {
                     perror("Error while reading roll no of student from client");
                 }
                 bzero(write_buffer, sizeof(write_buffer));
-                struct Student student = getStudentDetails(read_buffer);
-                sprintf(write_buffer, STUDENT_DETAILS, student.std_id, student.name, student.age, student.email, student.password, student.no_of_courses_enrolled);
+                student = getStudentDetails(read_buffer);
+                sprintf(write_buffer, STUDENT_DETAILS, student.std_id, student.name, student.age, student.email, student.password, student.no_of_courses_enrolled, student.isActivated ? "activated" : "de-activated");
                 strcat(write_buffer, "\n");
                 break;
             case 3 :
                 printf("Modify student details \n");
-                struct Student updatedStudent = updateStudent(socket_fd);
+                student = updateStudent(socket_fd);
                 strcat(write_buffer, "Student details are updated successfully \n");
-                sprintf(write_buffer, STUDENT_DETAILS, updatedStudent.std_id, updatedStudent.name, updatedStudent.age, updatedStudent.email, updatedStudent.password, updatedStudent.no_of_courses_enrolled);
+                sprintf(write_buffer, STUDENT_DETAILS, student.std_id, student.name, student.age, student.email, student.password, student.no_of_courses_enrolled, student.isActivated ? "activated" : "de-activated");
+                strcat(write_buffer, "\n");
+                break;
+            case 4 :
+                printf("Activate student details \n");
+                student = updateStudentActivateStatus(socket_fd, true);
+                strcat(write_buffer, "Student is activated successfully \n");
+                strcat(write_buffer, "\n");
+                break;
+            case 5:
+                printf("De-Activate student details \n");
+                student = updateStudentActivateStatus(socket_fd, false);
+                strcat(write_buffer, "Student is de-activated successfully \n");
                 strcat(write_buffer, "\n");
                 break;
             default :
@@ -173,4 +189,23 @@ struct Student updateStudent(int socket_fd) {
             break;
     }
     return updatedStudent;
+}
+
+struct Student updateStudentActivateStatus(int socket_fd, bool isActive) {
+    char read_buffer[1000], write_buffer[1000];
+    int bytes_rcvd, bytes_sent;
+    bzero(write_buffer, sizeof(write_buffer));
+    bzero(read_buffer, sizeof(read_buffer));
+
+    strcat(write_buffer, "Enter the roll number of the student whose details \nyou want want to update: ");
+    if (write(socket_fd, write_buffer, strlen(write_buffer)) == -1) {
+        perror("Error while asking the client to enter roll no to update student details");
+    }
+    if (read(socket_fd, read_buffer, sizeof(read_buffer)) == -1) {
+        perror("Error while reading roll no of student from client");
+    }
+    int rollno;
+    sscanf(read_buffer, "MT%03d", &rollno);
+
+    return updateStudentAccountStatus(rollno, isActive);
 }

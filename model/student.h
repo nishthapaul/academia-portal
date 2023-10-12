@@ -8,6 +8,7 @@ struct Student {
     char email[50];
     char password[50];
     int no_of_courses_enrolled;
+    bool isActivated;
 };
 
 #endif

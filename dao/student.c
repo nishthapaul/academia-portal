@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <stdbool.h>
 
 #include "student-dao.h"
 #include "../model/student.h"
@@ -25,6 +26,7 @@ int insertStudent(char name[], int age, char email[]) {
     strcpy(student.email, email);
     strcpy(student.password, password);
     student.no_of_courses_enrolled = 0;
+    student.isActivated = true;
     printf("id: %s \n", student.std_id);
     printf("name: %s \n", student.name);
     printf("age: %d \n", student.age);
@@ -134,6 +136,23 @@ struct Student updateStudentEmail(int rollno, char email[]) {
     lseek(fd, (rollno - 1) * sizeof(struct Student), SEEK_SET);
     read(fd, &student, sizeof(struct Student));
     strcpy(student.email, email);
+    lseek(fd, -1 * sizeof(struct Student), SEEK_CUR);
+    write(fd, &student, sizeof(struct Student));
+
+    close(fd);
+    return student;
+}
+
+struct Student updateStudentAccountStatus(int rollno, bool isActive) {
+    int fd = open("/Users/nishthapaul/iiitb/academia-portal/data/student.txt", O_RDWR);
+    if (fd == -1) {
+		perror("Error in opening the file student.txt. \n");
+	}
+    struct Student student;
+
+    lseek(fd, (rollno - 1) * sizeof(struct Student), SEEK_SET);
+    read(fd, &student, sizeof(struct Student));
+    student.isActivated = isActive;
     lseek(fd, -1 * sizeof(struct Student), SEEK_CUR);
     write(fd, &student, sizeof(struct Student));
 
