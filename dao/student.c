@@ -11,7 +11,7 @@ void generateStudentId(char* new_id);
 void generateStudentPassword(char* password);
 void incrementRollNumber(const char* input_rollno, char* new_rollno, int size);
 
-void insertStudent(char name[], int age, char email[]) {
+int insertStudent(char name[], int age, char email[]) {
     char new_id[6], password[50];
     generateStudentId(new_id);
     generateStudentPassword(password);
@@ -37,6 +37,9 @@ void insertStudent(char name[], int age, char email[]) {
         perror("Student details could not be written to the file");
     }
     close(fd);
+    int rollno;
+    sscanf(student.std_id, "MT%d", &rollno);
+    return rollno;
 }
 
 void generateStudentId(char* new_id) {
