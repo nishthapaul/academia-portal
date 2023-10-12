@@ -63,6 +63,7 @@ void connection_handler(int socket_fd) {
         if (bytes_rcvd < 0) {
             perror("Error while reading from client socket");
         } else if (bytes_rcvd == 0) {
+            printf("=======Thank you for using our portal======\n");
             printf("No error received from server! Closing the connection to the server now!\n");
         } else {
             printf("%s", read_buffer);
