@@ -5,6 +5,7 @@
 
 #include "admin-ops.h"
 #include "../constants/menu.h"
+#include "../constants/view-details.h"
 #include "../model/student.h"
 #include "../dao/student-dao.h"
 
@@ -46,6 +47,17 @@ void handle_admin_operations(int socket_fd) {
                 break;
             case 2 :
                 printf("View student details \n");
+                strcat(write_buffer, "Enter the roll number of the student whose details \nyou want want to view: ");
+                if (write(socket_fd, write_buffer, strlen(write_buffer)) == -1) {
+                    perror("Error while asking the client to enter roll no to view student details");
+                }
+                if (read(socket_fd, read_buffer, sizeof(read_buffer)) == -1) {
+                    perror("Error while reading roll no of student from client");
+                }
+                bzero(write_buffer, sizeof(write_buffer));
+                struct Student student = getStudentDetails(read_buffer);
+                sprintf(write_buffer, STUDENT_DETAILS, student.std_id, student.name, student.age, student.email, student.password, student.no_of_courses_enrolled);
+                strcat(write_buffer, "\n");
                 break;
             default :
                 bzero(write_buffer, sizeof(write_buffer));
@@ -57,9 +69,11 @@ void handle_admin_operations(int socket_fd) {
         if(write(socket_fd, write_buffer, strlen(write_buffer)) == -1) {
             perror("Error while asking the client: to continue admin flow");
         }
+        bzero(read_buffer, sizeof(read_buffer));
         if (read(socket_fd, read_buffer, sizeof(read_buffer)) == -1) {
             perror("Error while reading from client: to continue admin flow");
         }
+        printf("%s \n", read_buffer);
     } while (strcmp(read_buffer, "yes") == 0);
 }
 

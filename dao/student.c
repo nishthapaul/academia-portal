@@ -10,6 +10,7 @@
 void generateStudentId(char* new_id);
 void generateStudentPassword(char* password);
 void incrementRollNumber(const char* input_rollno, char* new_rollno, int size);
+struct Student getStudentDetails(char roll_no[]);
 
 int insertStudent(char name[], int age, char email[]) {
     char new_id[6], password[50];
@@ -40,6 +41,19 @@ int insertStudent(char name[], int age, char email[]) {
     int rollno;
     sscanf(student.std_id, "MT%d", &rollno);
     return rollno;
+}
+
+struct Student getStudentDetails(char rollno_string[]) {
+    int fd = open("/Users/nishthapaul/iiitb/academia-portal/data/student.txt", O_RDONLY);
+    if (fd == -1) {
+		perror("Error in opening the file student.txt. \n");
+	}
+    int rollno;
+    sscanf(rollno_string, "MT%d", &rollno);
+    lseek(fd, rollno * sizeof(struct Student), SEEK_SET);
+    struct Student student;
+    read(fd, &student, sizeof(struct Student));
+    return student;
 }
 
 void generateStudentId(char* new_id) {
