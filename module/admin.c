@@ -11,12 +11,15 @@
 #include "../model/faculty.h"
 #include "../dao/student-dao.h"
 #include "../dao/faculty-dao.h"
+#include "../commons/common.h"
 
 int createStudent(int socket_fd);
 struct Student updateStudent(int socket_fd);
 struct Student updateStudentActivateStatus(int socket_fd, bool isActive);
 int createFaculty(int socket_fd);
 struct Faculty updateFaculty(int socket_fd);
+// int isStudentEmpty(struct Student student);
+// int isFacultyEmpty(struct Faculty faculty);
 
 void handle_admin_operations(int socket_fd) {
     printf("in handle_admin_operations \n");
@@ -72,9 +75,14 @@ void handle_admin_operations(int socket_fd) {
             case 3 :
                 printf("Modify student details \n");
                 student = updateStudent(socket_fd);
-                strcat(write_buffer, "Student details are updated successfully \n");
-                sprintf(write_buffer, STUDENT_DETAILS, student.std_id, student.name, student.age, student.email, student.password, student.no_of_courses_enrolled, student.isActivated ? "activated" : "de-activated");
-                strcat(write_buffer, "\n");
+                if (isStudentEmpty(student)) {
+                    bzero(write_buffer, sizeof(write_buffer));
+                    strcpy(write_buffer, "Invalid option was selected. Please try again. \n");
+                } else {
+                    strcat(write_buffer, "Student details are updated successfully \n");
+                    sprintf(write_buffer, STUDENT_DETAILS, student.std_id, student.name, student.age, student.email, student.password, student.no_of_courses_enrolled, student.isActivated ? "activated" : "de-activated");
+                    strcat(write_buffer, "\n");
+                }
                 break;
             case 4 :
                 printf("Activate student details \n");
@@ -115,14 +123,19 @@ void handle_admin_operations(int socket_fd) {
             case 8 :
                 printf("Modify faculty details \n");
                 faculty = updateFaculty(socket_fd);
-                strcat(write_buffer, "Faculty details are updated successfully \n");
-                sprintf(write_buffer, FACULTY_DETAILS, faculty.faculty_id, faculty.name, faculty.email, faculty.dept, faculty.password);
-                strcat(write_buffer, "\n");
+                if (isFacultyEmpty(faculty)) {
+                    bzero(write_buffer, sizeof(write_buffer));
+                    strcpy(write_buffer, "Invalid option was selected. Please try again. \n");
+                } else {
+                    strcat(write_buffer, "Faculty details are updated successfully \n");
+                    sprintf(write_buffer, FACULTY_DETAILS, faculty.faculty_id, faculty.name, faculty.email, faculty.dept, faculty.password);
+                    strcat(write_buffer, "\n");
+                }
                 break;
             default :
                 bzero(write_buffer, sizeof(write_buffer));
                 strcpy(write_buffer, "Invalid option was selected. Please try again. \n");
-                write(socket_fd, write_buffer, strlen(write_buffer));
+                // write(socket_fd, write_buffer, strlen(write_buffer));
                 break;
         }
         strcat(write_buffer, "Do you want to continue (yes/no)? : ");
@@ -168,6 +181,8 @@ struct Student updateStudent(int socket_fd) {
     int bytes_rcvd, bytes_sent;
     bzero(write_buffer, sizeof(write_buffer));
     bzero(read_buffer, sizeof(read_buffer));
+    struct Student updatedStudent;
+    memset(&updatedStudent, 0, sizeof(struct Student));
 
     strcat(write_buffer, "Enter the roll number of the student whose details \nyou want want to update: ");
     if (write(socket_fd, write_buffer, strlen(write_buffer)) == -1) {
@@ -184,8 +199,6 @@ struct Student updateStudent(int socket_fd) {
     bzero(read_buffer, sizeof(read_buffer));
 
     strcat(write_buffer, UPDATE_STUDENT_MENU);
-    strcat(write_buffer, "\n");
-    strcat(write_buffer, "Choose the option to update student details: ");
     if (write(socket_fd, write_buffer, strlen(write_buffer)) == -1) {
         perror("Error while asking the client to enter which student details has to be updated");
     }
@@ -193,7 +206,10 @@ struct Student updateStudent(int socket_fd) {
         perror("Error while reading which student details has to be updated from client");
     }
     int choice = atoi(read_buffer);
-
+    printf("New choice: %d", choice);
+    if (choice > 3) {
+        return updatedStudent;
+    }
 
     bzero(write_buffer, sizeof(write_buffer));
     bzero(read_buffer, sizeof(read_buffer));
@@ -206,7 +222,6 @@ struct Student updateStudent(int socket_fd) {
         perror("Error while reading the value to be updated from client");
     }
 
-    struct Student updatedStudent;
     switch(choice) {
         case 1:
             printf("updating name \n");
@@ -285,6 +300,8 @@ struct Faculty updateFaculty(int socket_fd) {
     int bytes_rcvd, bytes_sent;
     bzero(write_buffer, sizeof(write_buffer));
     bzero(read_buffer, sizeof(read_buffer));
+    struct Faculty updatedFaculty;
+    memset(&updatedFaculty, 0, sizeof(struct Faculty));
 
     strcat(write_buffer, "Enter the faculty number of the faculty whose details \nyou want want to update: ");
     if (write(socket_fd, write_buffer, strlen(write_buffer)) == -1) {
@@ -300,8 +317,6 @@ struct Faculty updateFaculty(int socket_fd) {
     bzero(read_buffer, sizeof(read_buffer));
 
     strcat(write_buffer, UPDATE_FACULTY_MENU);
-    strcat(write_buffer, "\n");
-    strcat(write_buffer, "Choose the option to update faculty details: ");
     if (write(socket_fd, write_buffer, strlen(write_buffer)) == -1) {
         perror("Error while asking the client to enter which faculty details has to be updated");
     }
@@ -309,7 +324,9 @@ struct Faculty updateFaculty(int socket_fd) {
         perror("Error while reading which faculty details has to be updated from client");
     }
     int choice = atoi(read_buffer);
-
+    if (choice > 3) {
+        return updatedFaculty;
+    }
 
     bzero(write_buffer, sizeof(write_buffer));
     bzero(read_buffer, sizeof(read_buffer));
@@ -322,7 +339,6 @@ struct Faculty updateFaculty(int socket_fd) {
         perror("Error while reading the value to be updated from client");
     }
 
-    struct Faculty updatedFaculty;
     switch(choice) {
         case 1:
             printf("updating name \n");
@@ -342,3 +358,11 @@ struct Faculty updateFaculty(int socket_fd) {
     }
     return updatedFaculty;
 }
+
+// int isFacultyEmpty(struct Faculty faculty) {
+//     return (memcmp(&faculty, &(struct Faculty){0}, sizeof(struct Faculty)) == 0);
+// }
+
+// int isStudentEmpty(struct Student student) {
+//     return (memcmp(&student, &(struct Student){0}, sizeof(struct Student)) == 0);
+// }
