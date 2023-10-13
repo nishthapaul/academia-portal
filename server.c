@@ -18,6 +18,7 @@ Author : Nishtha Paul
 #include "./module/student-ops.h"
 #include "./module/faculty-ops.h"
 #include "./dao/student-dao.h"
+#include "./dao/faculty-dao.h"
 
 #define PORT 8080
 #define MAX_CONNECTIONS 5
@@ -161,8 +162,7 @@ bool isAuthenticated(int choice, char login_id[], char password[]) {
     } else if (choice == 2 && login_id[0] == 'M' && login_id[1] == 'T') {
         return isStudentAuthenticated(login_id, password);
     } else if (choice == 3 && login_id[0] == 'F' && login_id[1] == 'A') {
-        return true;
-        // return isFacultyAuthenticated(login_id, password);
+        return isFacultyAuthenticated(login_id, password);
     } else {
         return false;
     }
