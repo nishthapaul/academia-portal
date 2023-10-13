@@ -12,4 +12,13 @@
 "= Account status : %s \n" \
 "======================================================"
 
+#define FACULTY_DETAILS \
+"================= View Student Details ===============\n" \
+"= Faculty Number : %s \n" \
+"= Name : %s \n" \
+"= Email : %s \n" \
+"= Department : %s \n" \
+"= Password : %s \n" \
+"======================================================"
+
 #endif

@@ -8,11 +8,14 @@
 #include "../constants/menu.h"
 #include "../constants/view-details.h"
 #include "../model/student.h"
+#include "../model/faculty.h"
 #include "../dao/student-dao.h"
+#include "../dao/faculty-dao.h"
 
 int createStudent(int socket_fd);
 struct Student updateStudent(int socket_fd);
 struct Student updateStudentActivateStatus(int socket_fd, bool isActive);
+int createFaculty(int socket_fd);
 
 void handle_admin_operations(int socket_fd) {
     printf("in handle_admin_operations \n");
@@ -38,6 +41,7 @@ void handle_admin_operations(int socket_fd) {
         bzero(read_buffer, sizeof(read_buffer));
 
         struct Student student;
+        struct Faculty faculty;
 
         switch(choice) {
             case 1 : 
@@ -81,6 +85,30 @@ void handle_admin_operations(int socket_fd) {
                 printf("De-Activate student details \n");
                 student = updateStudentActivateStatus(socket_fd, false);
                 strcat(write_buffer, "Student is de-activated successfully \n");
+                strcat(write_buffer, "\n");
+                break;
+            case 6 : 
+                printf("Add a faculty \n");
+                int facultyno = createFaculty(socket_fd);
+                char faculty_id[6];
+                sprintf(faculty_id, "FA%03d", facultyno);  
+                strcat(write_buffer, "============= Faculty added successfully =============\n");
+                strcat(write_buffer, "========== Login Id of the faculty is : ");
+                strcat(write_buffer, faculty_id);
+                strcat(write_buffer, " ========\n");
+                break;
+            case 7 :
+                printf("View faculty details \n");
+                strcat(write_buffer, "Enter the faculty number of the faulty whose details \nyou want want to view: ");
+                if (write(socket_fd, write_buffer, strlen(write_buffer)) == -1) {
+                    perror("Error while asking the client to enter roll no to view faculty details");
+                }
+                if (read(socket_fd, read_buffer, sizeof(read_buffer)) == -1) {
+                    perror("Error while reading faculty no of faculty from client");
+                }
+                bzero(write_buffer, sizeof(write_buffer));
+                faculty = getFacultyDetails(read_buffer);
+                sprintf(write_buffer, FACULTY_DETAILS, faculty.faculty_id, faculty.name, faculty.email, faculty.dept, faculty.password);
                 strcat(write_buffer, "\n");
                 break;
             default :
@@ -209,3 +237,38 @@ struct Student updateStudentActivateStatus(int socket_fd, bool isActive) {
 
     return updateStudentAccountStatus(rollno, isActive);
 }
+
+int createFaculty(int socket_fd) {
+    char read_buffer[1000], write_buffer[1000];
+    int bytes_rcvd, bytes_sent;
+
+    bzero(write_buffer, sizeof(write_buffer));
+    bzero(read_buffer, sizeof(read_buffer));
+
+    strcpy(write_buffer, "Enter the name of the faculty: ");
+    write(socket_fd, write_buffer, strlen(write_buffer));
+    read(socket_fd, read_buffer, sizeof(read_buffer));
+    char name[50];
+    strcpy(name, read_buffer);
+
+    bzero(write_buffer, sizeof(write_buffer));
+    bzero(read_buffer, sizeof(read_buffer));
+
+    strcpy(write_buffer, "Enter the email id of the faculty: ");
+    write(socket_fd, write_buffer, strlen(write_buffer));
+    read(socket_fd, read_buffer, sizeof(read_buffer));
+    char email[50];
+    strcpy(email, read_buffer);
+
+    bzero(write_buffer, sizeof(write_buffer));
+    bzero(read_buffer, sizeof(read_buffer));
+
+    strcpy(write_buffer, "Enter the department of the faculty: ");
+    write(socket_fd, write_buffer, strlen(write_buffer));
+    read(socket_fd, read_buffer, sizeof(read_buffer));
+    char dept[50];
+    strcpy(dept, read_buffer);
+
+    return insertFaculty(name, email, dept);
+}
+
