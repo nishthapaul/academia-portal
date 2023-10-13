@@ -68,4 +68,14 @@
 "======================================================\n" \
 "Please enter your choice : "
 
+#define UPDATE_FACULTY_MENU \
+"================= Select the Operation ===============\n" \
+"=                                                    =\n" \
+"=  1.  Name                                          =\n" \
+"=  2.  Email Id                                      =\n" \
+"=  3.  Department                                    =\n" \
+"=                                                    =\n" \
+"======================================================\n" \
+"Please enter your choice : "
+
 #endif

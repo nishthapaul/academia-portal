@@ -16,6 +16,7 @@ int createStudent(int socket_fd);
 struct Student updateStudent(int socket_fd);
 struct Student updateStudentActivateStatus(int socket_fd, bool isActive);
 int createFaculty(int socket_fd);
+struct Faculty updateFaculty(int socket_fd);
 
 void handle_admin_operations(int socket_fd) {
     printf("in handle_admin_operations \n");
@@ -99,7 +100,7 @@ void handle_admin_operations(int socket_fd) {
                 break;
             case 7 :
                 printf("View faculty details \n");
-                strcat(write_buffer, "Enter the faculty number of the faulty whose details \nyou want want to view: ");
+                strcat(write_buffer, "Enter the faculty id of the faulty whose details \nyou want want to view: ");
                 if (write(socket_fd, write_buffer, strlen(write_buffer)) == -1) {
                     perror("Error while asking the client to enter roll no to view faculty details");
                 }
@@ -108,6 +109,13 @@ void handle_admin_operations(int socket_fd) {
                 }
                 bzero(write_buffer, sizeof(write_buffer));
                 faculty = getFacultyDetails(read_buffer);
+                sprintf(write_buffer, FACULTY_DETAILS, faculty.faculty_id, faculty.name, faculty.email, faculty.dept, faculty.password);
+                strcat(write_buffer, "\n");
+                break;
+            case 8 :
+                printf("Modify faculty details \n");
+                faculty = updateFaculty(socket_fd);
+                strcat(write_buffer, "Faculty details are updated successfully \n");
                 sprintf(write_buffer, FACULTY_DETAILS, faculty.faculty_id, faculty.name, faculty.email, faculty.dept, faculty.password);
                 strcat(write_buffer, "\n");
                 break;
@@ -272,3 +280,65 @@ int createFaculty(int socket_fd) {
     return insertFaculty(name, email, dept);
 }
 
+struct Faculty updateFaculty(int socket_fd) {
+    char read_buffer[1000], write_buffer[1000];
+    int bytes_rcvd, bytes_sent;
+    bzero(write_buffer, sizeof(write_buffer));
+    bzero(read_buffer, sizeof(read_buffer));
+
+    strcat(write_buffer, "Enter the faculty number of the faculty whose details \nyou want want to update: ");
+    if (write(socket_fd, write_buffer, strlen(write_buffer)) == -1) {
+        perror("Error while asking the client to enter faculty no to update faculty details");
+    }
+    if (read(socket_fd, read_buffer, sizeof(read_buffer)) == -1) {
+        perror("Error while reading faculty no of faculty from client");
+    }
+    int facultyno;
+    sscanf(read_buffer, "FA%03d", &facultyno);
+
+    bzero(write_buffer, sizeof(write_buffer));
+    bzero(read_buffer, sizeof(read_buffer));
+
+    strcat(write_buffer, UPDATE_FACULTY_MENU);
+    strcat(write_buffer, "\n");
+    strcat(write_buffer, "Choose the option to update faculty details: ");
+    if (write(socket_fd, write_buffer, strlen(write_buffer)) == -1) {
+        perror("Error while asking the client to enter which faculty details has to be updated");
+    }
+    if (read(socket_fd, read_buffer, sizeof(read_buffer)) == -1) {
+        perror("Error while reading which faculty details has to be updated from client");
+    }
+    int choice = atoi(read_buffer);
+
+
+    bzero(write_buffer, sizeof(write_buffer));
+    bzero(read_buffer, sizeof(read_buffer));
+
+    strcat(write_buffer, "Enter the value to be updated: ");
+    if (write(socket_fd, write_buffer, strlen(write_buffer)) == -1) {
+        perror("Error while asking the client to enter the value to be updated");
+    }
+    if (read(socket_fd, read_buffer, sizeof(read_buffer)) == -1) {
+        perror("Error while reading the value to be updated from client");
+    }
+
+    struct Faculty updatedFaculty;
+    switch(choice) {
+        case 1:
+            printf("updating name \n");
+            updatedFaculty = updateFacultyName(facultyno, read_buffer);
+            break;
+        case 2:
+            printf("updating email \n");
+            updatedFaculty = updateFacultyEmail(facultyno, read_buffer);
+            break;
+        case 3:
+            printf("updating dept \n");
+            updatedFaculty = updateFacultyDepartment(facultyno, read_buffer);
+            break;
+        default:
+            printf("wrong choice\n");
+            break;
+    }
+    return updatedFaculty;
+}

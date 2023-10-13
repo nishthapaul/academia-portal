@@ -6,8 +6,7 @@ struct Faculty getFacultyDetails(char facultyno_string[]);
 
 struct Faculty updateFacultyName(int facultyno, char name[]);
 struct Faculty updateFacultyEmail(int facultyno, char email[]);
-
-struct Faculty updateFacultyAccountStatus(int facultyno, bool isActive);
+struct Faculty updateFacultyDepartment(int facultyno, char dept[]);
 
 bool isFacultyAuthenticated(char login_id[], char password[]);
 
