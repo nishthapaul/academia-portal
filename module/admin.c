@@ -18,8 +18,6 @@ struct Student updateStudent(int socket_fd);
 struct Student updateStudentActivateStatus(int socket_fd, bool isActive);
 int createFaculty(int socket_fd);
 struct Faculty updateFaculty(int socket_fd);
-// int isStudentEmpty(struct Student student);
-// int isFacultyEmpty(struct Faculty faculty);
 
 void handle_admin_operations(int socket_fd) {
     printf("in handle_admin_operations \n");
@@ -358,11 +356,3 @@ struct Faculty updateFaculty(int socket_fd) {
     }
     return updatedFaculty;
 }
-
-// int isFacultyEmpty(struct Faculty faculty) {
-//     return (memcmp(&faculty, &(struct Faculty){0}, sizeof(struct Faculty)) == 0);
-// }
-
-// int isStudentEmpty(struct Student student) {
-//     return (memcmp(&student, &(struct Student){0}, sizeof(struct Student)) == 0);
-// }
