@@ -7,6 +7,7 @@
 
 #include "student-dao.h"
 #include "../model/student.h"
+#include "../commons/common.h"
 
 void generateStudentId(char* new_id);
 void generateStudentPassword(char* password);
@@ -158,4 +159,30 @@ struct Student updateStudentAccountStatus(int rollno, bool isActive) {
 
     close(fd);
     return student;
+}
+
+bool isStudentAuthenticated(char login_id[], char password[]) {
+    int fd = open("/Users/nishthapaul/iiitb/academia-portal/data/student.txt", O_RDONLY);
+    if (fd == -1) {
+		perror("Error in opening the file student.txt. \n");
+	}
+    int offset = lseek(fd, -1 * sizeof(struct Student), SEEK_END);
+    if (offset == -1) {
+        // no student present
+        return false;
+    } else {
+        struct Student student;
+        read(fd, &student, sizeof(struct Student));
+        if (getSuffix(login_id) > getSuffix(student.std_id)) {
+            return false;
+        } else {
+            lseek(fd, 0, SEEK_SET);
+            while (read(fd, &student, sizeof(struct Student)) > 0) {
+                if ((strcmp(student.std_id, login_id) == 0) && (strcmp(student.password, password) == 0)) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
 }

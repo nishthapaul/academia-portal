@@ -10,4 +10,6 @@ struct Student updateStudentEmail(int rollno, char email[]);
 
 struct Student updateStudentAccountStatus(int rollno, bool isActive);
 
+bool isStudentAuthenticated(char login_id[], char password[]);
+
 #endif

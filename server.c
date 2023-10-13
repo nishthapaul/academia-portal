@@ -11,16 +11,19 @@ Author : Nishtha Paul
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <pthread.h>
+#include <stdbool.h>
 
 #include "./constants/menu.h"
 #include "./module/admin-ops.h"
 #include "./module/student-ops.h"
 #include "./module/faculty-ops.h"
+#include "./dao/student-dao.h"
 
 #define PORT 8080
 #define MAX_CONNECTIONS 5
 
 void *handle_client(void *client_socket_fd);
+bool isAuthenticated(int choice, char login_id[], char password[]);
 
 int main() {
     int server_socket_fd, client_socket_fd;
@@ -81,42 +84,86 @@ void *handle_client(void *arg) {
     int bytes_rcvd, bytes_sent;
 
     bzero(write_buffer, sizeof(write_buffer));
+    bzero(read_buffer, sizeof(read_buffer));
 
     strcpy(write_buffer, INTRODUCTION);
     strcat(write_buffer, "\n");
     strcat(write_buffer, ROLE_MENU);
 
-    bytes_sent = write(client_socket_fd, write_buffer, strlen(write_buffer));
-    if (bytes_sent == -1)
-        perror("Error while sending first introduction to the user!");
-    else {
-        bzero(read_buffer, sizeof(read_buffer));
-        bytes_rcvd = read(client_socket_fd, read_buffer, sizeof(read_buffer));
-        if (bytes_rcvd == -1) {
-            perror("Error while reading from client");
-        } else {
-            int choice = atoi(read_buffer);
-            printf("Choice: %d \n", choice);
-            switch(choice) {
-                case 1 : 
-                    handle_admin_operations(client_socket_fd); // send connfd
-                    break;
-                case 2 :
-                    handle_student_operations(client_socket_fd); // send connfd
-                    break;
-                case 3 :
-                    handle_faculty_operations(client_socket_fd); // send connfd
-                    break;
-                default :
-                    bzero(write_buffer, sizeof(write_buffer));
-                    strcpy(write_buffer, "Invalid option was selected !!!");
-                    write(client_socket_fd, write_buffer, strlen(write_buffer));
-                    break;
-            }
+    if (write(client_socket_fd, write_buffer, strlen(write_buffer)) == -1)
+        perror("Error while sending first introduction to the user");
+    if (read(client_socket_fd, read_buffer, sizeof(read_buffer)) == -1) {
+        perror("Error while reading role from client");
+    }
+
+    int choice = atoi(read_buffer);
+    printf("Choice: %d \n", choice);
+
+    char login_id[1000], password[1000];
+
+    bzero(write_buffer, sizeof(write_buffer));
+    bzero(read_buffer, sizeof(read_buffer));
+    
+    strcpy(write_buffer, "========= Please enter your Login Credentials ========\n");
+    strcat(write_buffer, "=  Login Id: ");
+    if (write(client_socket_fd, write_buffer, strlen(write_buffer)) == -1)
+        perror("Error while asking user login id");
+    if (read(client_socket_fd, read_buffer, sizeof(read_buffer)) == -1) {
+        perror("Error while reading user login id from client");
+    }
+
+    strcpy(login_id, read_buffer);
+
+    bzero(write_buffer, sizeof(write_buffer));
+    bzero(read_buffer, sizeof(read_buffer));
+
+    strcpy(write_buffer, "=  Password: ");
+    if (write(client_socket_fd, write_buffer, strlen(write_buffer)) == -1)
+        perror("Error while asking user password");
+    if (read(client_socket_fd, read_buffer, sizeof(read_buffer)) == -1) {
+        perror("Error while reading user password from client");
+    }
+
+    strcpy(password, read_buffer);
+
+    if (isAuthenticated(choice, login_id, password)) {
+        switch(choice) {
+            case 1 : 
+                handle_admin_operations(client_socket_fd);
+                break;
+            case 2 :
+                handle_student_operations(client_socket_fd); // send login_id
+                break;
+            case 3 :
+                handle_faculty_operations(client_socket_fd); // send login_id
+                break;
+            default :
+                bzero(write_buffer, sizeof(write_buffer));
+                strcpy(write_buffer, "Invalid option was selected !!!");
+                write(client_socket_fd, write_buffer, strlen(write_buffer));
+                break;
         }
+    } else {
+        bzero(write_buffer, sizeof(write_buffer));
+        strcpy(write_buffer, "Login Id and Password are incorrect.\nPress enter to exit.");
+        write(client_socket_fd, write_buffer, strlen(write_buffer));
     }
 
     printf("Terminating connection to client!\n");
     close(client_socket_fd);
     pthread_exit(NULL);
+}
+
+bool isAuthenticated(int choice, char login_id[], char password[]) {
+    printf("in isAuthenticated \n");
+    if ((choice == 1) && (strcmp(login_id, "AD000") == 0) && (strcmp(password, "test123") == 0)) {
+        return true;
+    } else if (choice == 2 && login_id[0] == 'M' && login_id[1] == 'T') {
+        return isStudentAuthenticated(login_id, password);
+    } else if (choice == 3 && login_id[0] == 'F' && login_id[1] == 'A') {
+        return true;
+        // return isFacultyAuthenticated(login_id, password);
+    } else {
+        return false;
+    }
 }

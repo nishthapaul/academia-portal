@@ -16,6 +16,7 @@
 "Please enter your choice : "
 
 #define ADMIN_MENU \
+"======= You are successfully authenticated !!! =======\n" \
 "================= Select the Operation ===============\n" \
 "=                                                    =\n" \
 "=  1.  Add a Student                                 =\n" \
@@ -31,6 +32,7 @@
 "Please enter your choice : "
 
 #define STUDENT_MENU \
+"======= You are successfully authenticated !!! =======\n" \
 "================= Select the Operation ===============\n" \
 "=                                                    =\n" \
 "=  1.  View all courses                              =\n" \
@@ -43,6 +45,7 @@
 "Please enter your choice : "
 
 #define FACULTY_MENU \
+"======= You are successfully authenticated !!! =======\n" \
 "================= Select the Operation ===============\n" \
 "=                                                    =\n" \
 "=  1.  View offered courses                          =\n" \
