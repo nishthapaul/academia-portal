@@ -48,9 +48,9 @@
 "======= You are successfully authenticated !!! =======\n" \
 "================= Select the Operation ===============\n" \
 "=                                                    =\n" \
-"=  1.  View offered courses                          =\n" \
-"=  2.  Add a new course                              =\n" \
-"=  3.  Remove a offered course                       =\n" \
+"=  1.  Add a new course                              =\n" \
+"=  2.  View offered courses                          =\n" \
+"=  3.  De-activate an offered course                 =\n" \
 "=  4.  View a course details                         =\n" \
 "=  5.  Update course details                         =\n" \
 "=  6.  Change password                               =\n" \
