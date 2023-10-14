@@ -136,7 +136,7 @@ void *handle_client(void *arg) {
                 handle_student_operations(client_socket_fd); // send login_id
                 break;
             case 3 :
-                handle_faculty_operations(client_socket_fd); // send login_id
+                handle_faculty_operations(client_socket_fd, login_id); // send login_id
                 break;
             default :
                 bzero(write_buffer, sizeof(write_buffer));
