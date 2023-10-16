@@ -14,6 +14,7 @@ Author : Nishtha Paul
 #include <stdbool.h>
 
 #include "./constants/menu.h"
+#include "./constants/configs.h"
 #include "./module/admin-ops.h"
 #include "./module/student-ops.h"
 #include "./module/faculty-ops.h"
@@ -157,7 +158,7 @@ void *handle_client(void *arg) {
 
 bool isAuthenticated(int choice, char login_id[], char password[]) {
     printf("in isAuthenticated \n");
-    if ((choice == 1) && (strcmp(login_id, "AD000") == 0) && (strcmp(password, "test123") == 0)) {
+    if ((choice == 1) && (strcmp(login_id, ADMIN_LOGIN_ID) == 0) && (strcmp(password, ADMIN_PASSWORD) == 0)) {
         return true;
     } else if (choice == 2 && login_id[0] == 'M' && login_id[1] == 'T') {
         return isStudentAuthenticated(login_id, password);
