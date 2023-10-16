@@ -4,8 +4,7 @@
 #include <unistd.h>
 #include <stdbool.h>
 
-#include "../model/faculty.h"
-#include "../model/student.h"
+#include "common.h"
 
 int getSuffix(char input_id[]) {
     int numeric_part;
@@ -22,4 +21,8 @@ int isFacultyEmpty(struct Faculty faculty) {
 
 int isStudentEmpty(struct Student student) {
     return (memcmp(&student, &(struct Student){0}, sizeof(struct Student)) == 0);
+}
+
+int isCourseEmpty(struct Course course) {
+    return (memcmp(&course, &(struct Course){0}, sizeof(struct Course)) == 0);
 }
