@@ -51,9 +51,10 @@
 "=  1.  Add a new course                              =\n" \
 "=  2.  View offered courses                          =\n" \
 "=  3.  De-activate an offered course                 =\n" \
-"=  4.  View a course details                         =\n" \
-"=  5.  Update course details                         =\n" \
-"=  6.  Change password                               =\n" \
+"=  4.  Activate an offered course                    =\n" \
+"=  5.  View offered course details                   =\n" \
+"=  6.  Update total seats in a course                =\n" \
+"=  7.  Change password                               =\n" \
 "=                                                    =\n" \
 "======================================================\n" \
 "Please enter your choice : "
