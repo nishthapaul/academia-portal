@@ -53,4 +53,3 @@ int isPasswordValid(char password[]) {
     }
     return 0;
 }
-// len 5 to 20 hona chahiye
