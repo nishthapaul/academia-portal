@@ -6,8 +6,6 @@
 #include <stdbool.h>
 
 #include "faculty-dao.h"
-#include "../model/faculty.h"
-#include "../commons/common.h"
 
 void generateFacultyId(char* new_id);
 void generateFacultyPassword(char* password);

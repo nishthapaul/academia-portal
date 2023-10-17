@@ -1,6 +1,9 @@
 #ifndef FACULTY_DAO
 #define FACULTY_DAO
 
+#include "../model/faculty.h"
+#include "../commons/common.h"
+
 int insertFaculty(char name[], char email[], char dept[]);
 struct Faculty getFacultyDetails(char facultyno_string[]);
 

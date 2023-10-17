@@ -6,8 +6,6 @@
 #include <stdbool.h>
 
 #include "student-dao.h"
-#include "../model/student.h"
-#include "../commons/common.h"
 
 void generateStudentId(char* new_id);
 void generateStudentPassword(char* password);
@@ -40,6 +38,7 @@ int insertStudent(char name[], int age, char email[]) {
         perror("Student details could not be written to the file");
     }
     close(fd);
+    insertStudentInAllCourses(student.std_id);
     int rollno;
     sscanf(student.std_id, "MT%d", &rollno);
     return rollno;

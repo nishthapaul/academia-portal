@@ -101,53 +101,59 @@ void *handle_client(void *arg) {
     int choice = atoi(read_buffer);
     printf("Choice: %d \n", choice);
 
-    char login_id[1000], password[1000];
+    if (choice > 0 && choice < 4) {
+        char login_id[1000], password[1000];
 
-    bzero(write_buffer, sizeof(write_buffer));
-    bzero(read_buffer, sizeof(read_buffer));
-    
-    strcpy(write_buffer, "========= Please enter your Login Credentials ========\n");
-    strcat(write_buffer, "=  Login Id: ");
-    if (write(client_socket_fd, write_buffer, strlen(write_buffer)) == -1)
-        perror("Error while asking user login id");
-    if (read(client_socket_fd, read_buffer, sizeof(read_buffer)) == -1) {
-        perror("Error while reading user login id from client");
-    }
+        bzero(write_buffer, sizeof(write_buffer));
+        bzero(read_buffer, sizeof(read_buffer));
+        
+        strcpy(write_buffer, "========= Please enter your Login Credentials ========\n");
+        strcat(write_buffer, "=  Login Id: ");
+        if (write(client_socket_fd, write_buffer, strlen(write_buffer)) == -1)
+            perror("Error while asking user login id");
+        if (read(client_socket_fd, read_buffer, sizeof(read_buffer)) == -1) {
+            perror("Error while reading user login id from client");
+        }
 
-    strcpy(login_id, read_buffer);
+        strcpy(login_id, read_buffer);
 
-    bzero(write_buffer, sizeof(write_buffer));
-    bzero(read_buffer, sizeof(read_buffer));
+        bzero(write_buffer, sizeof(write_buffer));
+        bzero(read_buffer, sizeof(read_buffer));
 
-    strcpy(write_buffer, "=  Password: ");
-    if (write(client_socket_fd, write_buffer, strlen(write_buffer)) == -1)
-        perror("Error while asking user password");
-    if (read(client_socket_fd, read_buffer, sizeof(read_buffer)) == -1) {
-        perror("Error while reading user password from client");
-    }
+        strcpy(write_buffer, "=  Password: ");
+        if (write(client_socket_fd, write_buffer, strlen(write_buffer)) == -1)
+            perror("Error while asking user password");
+        if (read(client_socket_fd, read_buffer, sizeof(read_buffer)) == -1) {
+            perror("Error while reading user password from client");
+        }
 
-    strcpy(password, read_buffer);
+        strcpy(password, read_buffer);
 
-    if (isAuthenticated(choice, login_id, password)) {
-        switch(choice) {
-            case 1 : 
-                handle_admin_operations(client_socket_fd);
-                break;
-            case 2 :
-                handle_student_operations(client_socket_fd); // send login_id
-                break;
-            case 3 :
-                handle_faculty_operations(client_socket_fd, login_id); // send login_id
-                break;
-            default :
-                bzero(write_buffer, sizeof(write_buffer));
-                strcpy(write_buffer, "Invalid option was selected !!!");
-                write(client_socket_fd, write_buffer, strlen(write_buffer));
-                break;
+        if (isAuthenticated(choice, login_id, password)) {
+            switch(choice) {
+                case 1 : 
+                    handle_admin_operations(client_socket_fd);
+                    break;
+                case 2 :
+                    handle_student_operations(client_socket_fd, login_id);
+                    break;
+                case 3 :
+                    handle_faculty_operations(client_socket_fd, login_id);
+                    break;
+                default :
+                    bzero(write_buffer, sizeof(write_buffer));
+                    strcpy(write_buffer, "Invalid option was selected !!!");
+                    write(client_socket_fd, write_buffer, strlen(write_buffer));
+                    break;
+            }
+        } else {
+            bzero(write_buffer, sizeof(write_buffer));
+            strcpy(write_buffer, "Login Id and Password are incorrect.\nPress enter to exit.");
+            write(client_socket_fd, write_buffer, strlen(write_buffer));
         }
     } else {
         bzero(write_buffer, sizeof(write_buffer));
-        strcpy(write_buffer, "Login Id and Password are incorrect.\nPress enter to exit.");
+        strcpy(write_buffer, "Incorrect option selected. Try again next time.\nPress enter to exit.");
         write(client_socket_fd, write_buffer, strlen(write_buffer));
     }
 

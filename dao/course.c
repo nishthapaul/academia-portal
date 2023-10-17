@@ -4,13 +4,14 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdbool.h>
+#include <time.h>
 
 #include "./course-dao.h"
-#include "../model/course.h"
-#include "../commons/common.h"
+#include "../model/student-course.h"
 
 void generateCourseId(char* new_id);
 void incrementCourseId(const char* input_courseid, char* new_courseid, int size);
+void insertAllStudentsInCourse(char course_id[]);
 
 int insertCourse(char faculty_id[], char name[], int total_seats, int credits) {
     char new_id[6];
@@ -36,10 +37,7 @@ int insertCourse(char faculty_id[], char name[], int total_seats, int credits) {
         perror("Course details could not be written to the file");
     }
     close(fd);
-    char path[100];
-    sprintf(path, "/Users/nishthapaul/iiitb/academia-portal/courses/%s.txt", course.course_id);
-    fd = creat(path, 0744);
-    close(fd);
+    insertAllStudentsInCourse(course.course_id);
     return getSuffix(course.course_id);
 }
 
@@ -176,4 +174,137 @@ struct Course updateCourseTotalSeats(char course_id[], int seats) {
 
     close(fd);
     return course;
+}
+
+/* This method checks if the course is present in our data or not */
+bool isCourseActivated(char course_id[]) {
+    int fd = open("/Users/nishthapaul/iiitb/academia-portal/data/course.txt", O_RDONLY);
+    if (fd == -1) {
+		perror("Error in opening the file course.txt. \n");
+	}
+    struct Course course;
+    lseek(fd, (getSuffix(course_id) - 1) * sizeof(struct Course), SEEK_SET);
+    read(fd, &course, sizeof(struct Course));
+    return course.isActivated;
+}
+
+/*
+No need of file locking here, because individual student data will be updated using record locking
+and admin is adding this relationship at the end of the file which cannot clash with any other write.
+*/
+void insertStudentInAllCourses(char student_id[]) {
+    struct Student_Course std_course;
+    bzero(&std_course, sizeof(std_course));
+    strcpy(std_course.std_id, student_id);
+    std_course.hasEnrolled = false;
+
+    time_t currentTimestamp;
+    time(&currentTimestamp);
+    std_course.enrolledTimestamp = currentTimestamp;
+
+    int all_courses_fd = open("/Users/nishthapaul/iiitb/academia-portal/data/course.txt", O_RDONLY);
+    if (all_courses_fd == -1) {
+		perror("Error in opening the file course.txt. \n");
+	}
+    struct Course course;
+    while (read(all_courses_fd, &course, sizeof(struct Course)) > 0) {
+        strcpy(std_course.course_id, course.course_id);
+        char path[100];
+        sprintf(path, "/Users/nishthapaul/iiitb/academia-portal/courses/%s.txt", course.course_id);
+        int fd = open(path, O_WRONLY | O_APPEND);
+        write(fd, &std_course, sizeof(struct Student_Course));
+        close(fd);
+    }
+
+    close(all_courses_fd);
+}
+
+struct Course* getAllActivatedCourses(int* num_matches) {
+    int fd = open("/Users/nishthapaul/iiitb/academia-portal/data/course.txt", O_RDONLY);
+    if (fd == -1) {
+		perror("Error in opening the file course.txt. \n");
+	}
+
+    struct Course* course_array = NULL;
+    *num_matches = 0;
+    struct Course course;
+
+    while (read(fd, &course, sizeof(struct Course)) > 0) {
+        if (course.isActivated == true) {
+            course_array = realloc(course_array, (*num_matches + 1) * sizeof(struct Course));
+            if (course_array == NULL) {
+                perror("Memory allocation error");
+                close(fd);
+                free(course_array);
+                return NULL;
+            }
+            course_array[*num_matches] = course;
+            (*num_matches)++;
+        }
+    }
+    
+    close(fd);
+    return course_array;
+}
+
+struct Course* getAllEnrolledCourses(char student_id[], int* num_matches) {
+    int course_fd = open("/Users/nishthapaul/iiitb/academia-portal/data/course.txt", O_RDONLY);
+    if (course_fd == -1) {
+		perror("Error in opening the file course.txt.\n");
+	}
+
+    struct Course* course_array = NULL;
+    *num_matches = 0;
+    struct Course course;
+
+    while (read(course_fd, &course, sizeof(struct Course)) > 0) {
+        if (course.isActivated == true) {
+            char path[100];
+            sprintf(path, "/Users/nishthapaul/iiitb/academia-portal/courses/%s.txt", course.course_id);
+            int student_course_fd = open(path, O_RDONLY);
+            struct Student_Course std_course;
+            lseek(student_course_fd, (getSuffix(student_id) - 1) * sizeof(struct Student_Course), SEEK_SET);
+            read(student_course_fd, &std_course, sizeof(struct Student_Course));
+
+            if (std_course.hasEnrolled == true) {
+                course_array = realloc(course_array, (*num_matches + 1) * sizeof(struct Course));
+                if (course_array == NULL) {
+                    perror("Memory allocation error");
+                    close(student_course_fd);
+                    close(course_fd);
+                    free(course_array);
+                    return NULL;
+                }
+                course_array[*num_matches] = course;
+                (*num_matches)++;
+            }
+            close(student_course_fd);
+        }
+    }
+    close(course_fd);
+    return course_array;
+}
+
+void insertAllStudentsInCourse(char course_id[]) {
+    char path[100];
+    sprintf(path, "/Users/nishthapaul/iiitb/academia-portal/courses/%s.txt", course_id);
+    printf("%s \n", path);
+    int student_course_fd = open(path, O_CREAT | O_WRONLY, 0744);
+
+    struct Student student;
+    bzero(&student, sizeof(struct Student));
+    int student_fd = open("/Users/nishthapaul/iiitb/academia-portal/data/student.txt", O_RDONLY);
+    while (read(student_fd, &student, sizeof(struct Student)) > 0) {
+        printf("%s \n", student.std_id);
+        struct Student_Course std_course;
+        bzero(&std_course, sizeof(struct Student_Course));
+        strcpy(std_course.std_id, student.std_id);
+        strcpy(std_course.course_id, course_id);
+        std_course.hasEnrolled = false;
+        std_course.enrolledTimestamp = 0;
+        write(student_course_fd, &std_course, sizeof(struct Student_Course));
+    }
+
+    close(student_fd);
+    close(student_course_fd);
 }

@@ -17,7 +17,7 @@ int createCourse(int socket_fd, char faculty_id[]);
 void handle_faculty_operations(int socket_fd, char faculty_id[]) {
     printf("handle_faculty_operations");
     char read_buffer[1000], write_buffer[1000];
-    int bytes_rcvd, bytes_sent;
+    int bytes_rcvd, bytes_sent; // TODO: remove this useless line
 
     do {
         bzero(write_buffer, sizeof(write_buffer));
@@ -51,6 +51,10 @@ void handle_faculty_operations(int socket_fd, char faculty_id[]) {
                 strcat(write_buffer, " ========\n");
                 break;
             case 2 :
+                /*
+                    Displaying all offered courses irrespective of activated/deactivated, because 
+                    how will teacher know which course to activate
+                */
                 printf("View offered courses \n");
                 int num_matches = 0;
                 struct Course* matching_courses = findCoursesByFacultyId(course_id1, faculty_id, &num_matches);

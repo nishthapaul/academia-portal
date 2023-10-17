@@ -55,6 +55,7 @@ void handle_admin_operations(int socket_fd) {
                 strcat(write_buffer, "========== Login Id of the student is : ");
                 strcat(write_buffer, student_id);
                 strcat(write_buffer, " ========\n");
+                // TODO: add row in all courses txt files
                 break;
             case 2 :
                 printf("View student details \n");
@@ -85,13 +86,13 @@ void handle_admin_operations(int socket_fd) {
             case 4 :
                 printf("Activate student details \n");
                 student = updateStudentActivateStatus(socket_fd, true);
-                strcat(write_buffer, "Student is activated successfully \n");
+                strcat(write_buffer, "Student is activated successfully");
                 strcat(write_buffer, "\n");
                 break;
             case 5:
                 printf("De-Activate student details \n");
                 student = updateStudentActivateStatus(socket_fd, false);
-                strcat(write_buffer, "Student is de-activated successfully \n");
+                strcat(write_buffer, "Student is de-activated successfully");
                 strcat(write_buffer, "\n");
                 break;
             case 6 : 

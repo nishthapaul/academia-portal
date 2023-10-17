@@ -1,6 +1,11 @@
 #ifndef STUDENT_DAO
 #define STUDENT_DAO
 
+#include "../model/student.h"
+#include "course-dao.h"
+#include "../model/student.h"
+#include "../commons/common.h"
+
 int insertStudent(char name[], int age, char email[]);
 struct Student getStudentDetails(char rollno_string[]);
 

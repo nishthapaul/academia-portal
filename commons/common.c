@@ -26,3 +26,31 @@ int isStudentEmpty(struct Student student) {
 int isCourseEmpty(struct Course course) {
     return (memcmp(&course, &(struct Course){0}, sizeof(struct Course)) == 0);
 }
+
+int isPasswordValid(char password[]) {
+    int alpha = 0;
+    int digit = 0;
+    int special = 0;
+    int n = strlen(password);
+    if (n < 5 || n > 20) {
+        return -1;
+    }
+    for (int i = 0; i < n; i++) {
+        if ('a' <= password[i]  && password[i] >= 'z') {
+            alpha++;
+        } else if ('0' <= password[i]  && password[i] >= '1') {
+            digit++;
+        } else if (password[i] == '#' || password[i] == '$' || password[i] == '@') {
+            special++;
+        }
+    }
+    if (alpha == 0) {
+        return -2;
+    } else if (digit == 0) {
+        return -3;
+    } else if (special == 0) {
+        return -4;
+    }
+    return 0;
+}
+// len 5 to 20 hona chahiye
