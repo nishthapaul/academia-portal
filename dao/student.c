@@ -202,3 +202,8 @@ struct Student updateStudentPassword(int rollno, char password[]) {
     close(fd);
     return student;
 }
+
+bool isStudentActivated(char student_id[]) {
+    struct Student student = getStudentDetails(student_id);
+    return student.isActivated;
+}

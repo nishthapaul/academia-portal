@@ -44,6 +44,15 @@
 "======================================================\n" \
 "Please enter your choice : "
 
+#define DEACTIVATED_STUDENT_MENU \
+"======= You are successfully authenticated !!! =======\n" \
+"================= Select the Operation ===============\n" \
+"=                                                    =\n" \
+"=  1.  Change password                               =\n" \
+"=                                                    =\n" \
+"======================================================\n" \
+"Please enter your choice : "
+
 #define FACULTY_MENU \
 "======= You are successfully authenticated !!! =======\n" \
 "================= Select the Operation ===============\n" \

@@ -25,8 +25,11 @@ void handle_student_operations(int socket_fd, char login_id[]) {
 
     do {
         bzero(write_buffer, sizeof(write_buffer));
-
-        strcpy(write_buffer, STUDENT_MENU);
+    
+        if (isStudentActivated(login_id) == true)
+            strcpy(write_buffer, STUDENT_MENU);
+        else 
+            strcpy(write_buffer, DEACTIVATED_STUDENT_MENU);
 
         if (write(socket_fd, write_buffer, strlen(write_buffer)) == -1)
             perror("Error while displaying student menu to the user");
@@ -42,144 +45,182 @@ void handle_student_operations(int socket_fd, char login_id[]) {
         bzero(read_buffer, sizeof(read_buffer));
 
         struct Course course;
-
-        switch(choice) {
-            case 1 :
-                // view all active courses
-                printf("View all courses \n");
-                int num_matches = 0;
-                struct Course* courses = getAllActivatedCourses(&num_matches);
-                if (num_matches > 0) {
-                    strcpy(write_buffer, "================ List of all courses : ===============\n");
-                    strcat(write_buffer, "=                                                    =\n");
-                    strcat(write_buffer, "= Course ID     Course Name                          =\n");
-                    for (int i = 0; i < num_matches; i++) {
-                        char buffer[100];
-                        sprintf(buffer, "= %s         %s\n", courses[i].course_id, courses[i].name);
-                        strcat(write_buffer, buffer);
-                    }
-                    strcat(write_buffer, "=                                                    =\n");
-                    strcat(write_buffer, "======================================================\n");
-                } else {
-                    sprintf(write_buffer, "No courses found.\n");
-                }
-                free(courses);
-                break;
-            case 2 :
-                printf("Enroll in a course \n");
-                strcpy(write_buffer, "Enter the id of the course: ");
-                write(socket_fd, write_buffer, strlen(write_buffer));
-                read(socket_fd, read_buffer, sizeof(read_buffer));
-                bzero(write_buffer, sizeof(write_buffer));
-                char course_id2[50];
-                strcpy(course_id2, read_buffer);
-
-                if (isCourseIDValid(course_id2)) {
-                    struct Course course = doesCourseExist(course_id2);
-                    if (isCourseEmpty(course)) {
-                        strcpy(write_buffer, "This Course ID is invalid. \nPlease try again with a valid one. \n");
-                    } else {
-                        if (isCourseActivated(course_id2)) {
-                            int status = enrollStudentInCourse(login_id, course_id2);
-                            if (status == -1) {
-                                strcpy(write_buffer, "This Course is full. \nPlease try to enroll in other courses mentioned in choice 1. \n");
-                            } else if (status == -2) {
-                                strcpy(write_buffer, "You have already enrolled in this course. Choose any other course.\n");
-                            } else if (status == -3) {
-                                strcpy(write_buffer, "You have enrolled in 4 courses and cannot enroll in any more. \n");
-                            } else {
-                                strcpy(write_buffer, "============= Enrollment successful !!! ==============\n");
-                            }
-                        } else {
-                            strcpy(write_buffer, "This Course ID is not activated. \nPlease try to enroll in the courses mentioned in choice 1. \n");
+        
+        if (isStudentActivated(login_id) == true) {
+            switch(choice) {
+                case 1 :
+                    // view all active courses
+                    printf("View all courses \n");
+                    int num_matches = 0;
+                    struct Course* courses = getAllActivatedCourses(&num_matches);
+                    if (num_matches > 0) {
+                        strcpy(write_buffer, "================ List of all courses : ===============\n");
+                        strcat(write_buffer, "=                                                    =\n");
+                        strcat(write_buffer, "= Course ID     Course Name                          =\n");
+                        for (int i = 0; i < num_matches; i++) {
+                            char buffer[100];
+                            sprintf(buffer, "= %s         %s\n", courses[i].course_id, courses[i].name);
+                            strcat(write_buffer, buffer);
                         }
-                    }
-                } else {
-                    strcpy(write_buffer, "Format of Course ID is incorrect. Please try again. \n");
-                }
-                break;
-            case 3 :
-                printf("View enrolled courses \n");
-                num_matches = 0;
-                struct Course* enrolledCourses = getAllEnrolledCourses(login_id, &num_matches);
-                if (num_matches > 0) {
-                    strcpy(write_buffer, "============= List of enrolled courses : =============\n");
-                    strcat(write_buffer, "=                                                    =\n");
-                    strcat(write_buffer, "= Course ID     Course Name                          =\n");
-                    for (int i = 0; i < num_matches; i++) {
-                        char buffer[100];
-                        sprintf(buffer, "= %s         %s\n", enrolledCourses[i].course_id, enrolledCourses[i].name);
-                        strcat(write_buffer, buffer);
-                    }
-                    strcat(write_buffer, "=                                                    =\n");
-                    strcat(write_buffer, "======================================================\n");
-                } else {
-                    sprintf(write_buffer, "No courses found.\n");
-                }
-                free(enrolledCourses);
-                break;
-            case 4 :
-                printf("De-enroll in a course \n");
-                strcpy(write_buffer, "Enter the id of the course: ");
-                write(socket_fd, write_buffer, strlen(write_buffer));
-                read(socket_fd, read_buffer, sizeof(read_buffer));
-                bzero(write_buffer, sizeof(write_buffer));
-                char course_id4[50];
-                strcpy(course_id4, read_buffer);
-
-                if (isCourseIDValid(course_id4)) {
-                    struct Course course = doesCourseExist(course_id4);
-                    if (isCourseEmpty(course)) {
-                        strcpy(write_buffer, "This Course ID is invalid. \nPlease try again with a valid one. \n");
+                        strcat(write_buffer, "=                                                    =\n");
+                        strcat(write_buffer, "======================================================\n");
                     } else {
-                        if (isCourseActivated(course_id4)) {
-                            int status = deEnrollStudentInCourse(login_id, course_id4);
-                            if (status == -1) {
-                                strcpy(write_buffer, "You are not enrolled in this course. Choose any other course.\n");
-                            } else {
-                                strcpy(write_buffer, "============= De enrollment successful !!! ==============\n");
-                            }
-                        } else {
-                            strcpy(write_buffer, "This Course ID is not activated. \nPlease try to enroll in the courses mentioned in choice 1. \n");
-                        }
+                        sprintf(write_buffer, "No courses found.\n");
                     }
-                } else {
-                    strcpy(write_buffer, "Format of Course ID is incorrect. Please try again. \n");
-                }
-                break;
-            case 5: 
-                printf("Change password\n");
-                strcpy(write_buffer, PASSWORD_INSTRUCTIONS);
-                strcat(write_buffer, "Enter the new password: ");
+                    free(courses);
+                    break;
+                case 2 :
+                    printf("Enroll in a course \n");
+                    strcpy(write_buffer, "Enter the id of the course: ");
+                    write(socket_fd, write_buffer, strlen(write_buffer));
+                    read(socket_fd, read_buffer, sizeof(read_buffer));
+                    bzero(write_buffer, sizeof(write_buffer));
+                    char course_id2[50];
+                    strcpy(course_id2, read_buffer);
 
-                write(socket_fd, write_buffer, strlen(write_buffer));
-                read(socket_fd, read_buffer, sizeof(read_buffer));
-                bzero(write_buffer, sizeof(write_buffer));
-                char password[50];
-                strcpy(password, read_buffer);
-                int result = isPasswordValid(password);
-                if (result == -1) {
-                    strcpy(write_buffer, "Length of the password must be from 5 to 20 characters long. Please try again. \n");
-                } else if (result == -2) {
-                    strcpy(write_buffer, "Password should have atleast one alphabet. Please try again. \n");
-                } else if (result == -3) {
-                    strcpy(write_buffer, "Password should have atleast one digit. Please try again. \n");
-                } else if (result == -4) {
-                    strcpy(write_buffer, "Password should have atleast one special character. Please try again. \n");
-                } else {
-                    struct Student updatedStudent = updateStudentPassword(getSuffix(login_id), password);
-                    strcpy(write_buffer, "Password updated successfully\n");
-                    strcat(write_buffer, "Updated Student details: ");
-                    char buff[1000];
-                    sprintf(buff, STUDENT_DETAILS, updatedStudent.std_id, updatedStudent.name, updatedStudent.age, updatedStudent.email, updatedStudent.password, updatedStudent.no_of_courses_enrolled, updatedStudent.isActivated ? "activated" : "de-activated");
-                    strcat(write_buffer, buff);
-                    strcat(write_buffer, "\n");
-                }
-                break;
-            default :
-                bzero(write_buffer, sizeof(write_buffer));
-                strcpy(write_buffer, "Invalid option was selected. Please try again. \n");
-                break;
+                    if (isCourseIDValid(course_id2)) {
+                        struct Course course = doesCourseExist(course_id2);
+                        if (isCourseEmpty(course)) {
+                            strcpy(write_buffer, "This Course ID is invalid. \nPlease try again with a valid one. \n");
+                        } else {
+                            if (isCourseActivated(course_id2)) {
+                                int status = enrollStudentInCourse(login_id, course_id2);
+                                if (status == -1) {
+                                    strcpy(write_buffer, "This Course is full. \nPlease try to enroll in other courses mentioned in choice 1. \n");
+                                } else if (status == -2) {
+                                    strcpy(write_buffer, "You have already enrolled in this course. Choose any other course.\n");
+                                } else if (status == -3) {
+                                    strcpy(write_buffer, "You have enrolled in 4 courses and cannot enroll in any more. \n");
+                                } else {
+                                    strcpy(write_buffer, "============= Enrollment successful !!! ==============\n");
+                                }
+                            } else {
+                                strcpy(write_buffer, "This Course ID is not activated. \nPlease try to enroll in the courses mentioned in choice 1. \n");
+                            }
+                        }
+                    } else {
+                        strcpy(write_buffer, "Format of Course ID is incorrect. Please try again. \n");
+                    }
+                    break;
+                case 3 :
+                    printf("View enrolled courses \n");
+                    num_matches = 0;
+                    struct Course* enrolledCourses = getAllEnrolledCourses(login_id, &num_matches);
+                    if (num_matches > 0) {
+                        strcpy(write_buffer, "============= List of enrolled courses : =============\n");
+                        strcat(write_buffer, "=                                                    =\n");
+                        strcat(write_buffer, "= Course ID     Course Name                          =\n");
+                        for (int i = 0; i < num_matches; i++) {
+                            char buffer[100];
+                            sprintf(buffer, "= %s         %s\n", enrolledCourses[i].course_id, enrolledCourses[i].name);
+                            strcat(write_buffer, buffer);
+                        }
+                        strcat(write_buffer, "=                                                    =\n");
+                        strcat(write_buffer, "======================================================\n");
+                    } else {
+                        sprintf(write_buffer, "No courses found.\n");
+                    }
+                    free(enrolledCourses);
+                    break;
+                case 4 :
+                    printf("De-enroll in a course \n");
+                    strcpy(write_buffer, "Enter the id of the course: ");
+                    write(socket_fd, write_buffer, strlen(write_buffer));
+                    read(socket_fd, read_buffer, sizeof(read_buffer));
+                    bzero(write_buffer, sizeof(write_buffer));
+                    char course_id4[50];
+                    strcpy(course_id4, read_buffer);
+
+                    if (isCourseIDValid(course_id4)) {
+                        struct Course course = doesCourseExist(course_id4);
+                        if (isCourseEmpty(course)) {
+                            strcpy(write_buffer, "This Course ID is invalid. \nPlease try again with a valid one. \n");
+                        } else {
+                            if (isCourseActivated(course_id4)) {
+                                int status = deEnrollStudentInCourse(login_id, course_id4);
+                                if (status == -1) {
+                                    strcpy(write_buffer, "You are not enrolled in this course. Choose any other course.\n");
+                                } else {
+                                    strcpy(write_buffer, "============= De enrollment successful !!! ==============\n");
+                                }
+                            } else {
+                                strcpy(write_buffer, "This Course ID is not activated. \nPlease try to enroll in the courses mentioned in choice 1. \n");
+                            }
+                        }
+                    } else {
+                        strcpy(write_buffer, "Format of Course ID is incorrect. Please try again. \n");
+                    }
+                    break;
+                case 5: 
+                    printf("Change password\n");
+                    strcpy(write_buffer, PASSWORD_INSTRUCTIONS);
+                    strcat(write_buffer, "Enter the new password: ");
+
+                    write(socket_fd, write_buffer, strlen(write_buffer));
+                    read(socket_fd, read_buffer, sizeof(read_buffer));
+                    bzero(write_buffer, sizeof(write_buffer));
+                    char password[50];
+                    strcpy(password, read_buffer);
+                    int result = isPasswordValid(password);
+                    if (result == -1) {
+                        strcpy(write_buffer, "Length of the password must be from 5 to 20 characters long. Please try again. \n");
+                    } else if (result == -2) {
+                        strcpy(write_buffer, "Password should have atleast one alphabet. Please try again. \n");
+                    } else if (result == -3) {
+                        strcpy(write_buffer, "Password should have atleast one digit. Please try again. \n");
+                    } else if (result == -4) {
+                        strcpy(write_buffer, "Password should have atleast one special character. Please try again. \n");
+                    } else {
+                        struct Student updatedStudent = updateStudentPassword(getSuffix(login_id), password);
+                        strcpy(write_buffer, "Password updated successfully\n");
+                        strcat(write_buffer, "Updated Student details: ");
+                        char buff[1000];
+                        sprintf(buff, STUDENT_DETAILS, updatedStudent.std_id, updatedStudent.name, updatedStudent.age, updatedStudent.email, updatedStudent.password, updatedStudent.no_of_courses_enrolled, updatedStudent.isActivated ? "activated" : "de-activated");
+                        strcat(write_buffer, buff);
+                        strcat(write_buffer, "\n");
+                    }
+                    break;
+                default :
+                    bzero(write_buffer, sizeof(write_buffer));
+                    strcpy(write_buffer, "Invalid option was selected. Please try again. \n");
+                    break;
+            }
+        } else {
+            switch(choice) {
+                case 1: 
+                    printf("Change password\n");
+                    strcpy(write_buffer, PASSWORD_INSTRUCTIONS);
+                    strcat(write_buffer, "Enter the new password: ");
+
+                    write(socket_fd, write_buffer, strlen(write_buffer));
+                    read(socket_fd, read_buffer, sizeof(read_buffer));
+                    bzero(write_buffer, sizeof(write_buffer));
+                    char password[50];
+                    strcpy(password, read_buffer);
+                    int result = isPasswordValid(password);
+                    if (result == -1) {
+                        strcpy(write_buffer, "Length of the password must be from 5 to 20 characters long. Please try again. \n");
+                    } else if (result == -2) {
+                        strcpy(write_buffer, "Password should have atleast one alphabet. Please try again. \n");
+                    } else if (result == -3) {
+                        strcpy(write_buffer, "Password should have atleast one digit. Please try again. \n");
+                    } else if (result == -4) {
+                        strcpy(write_buffer, "Password should have atleast one special character. Please try again. \n");
+                    } else {
+                        struct Student updatedStudent = updateStudentPassword(getSuffix(login_id), password);
+                        strcpy(write_buffer, "Password updated successfully\n");
+                        strcat(write_buffer, "Updated Student details: ");
+                        char buff[1000];
+                        sprintf(buff, STUDENT_DETAILS, updatedStudent.std_id, updatedStudent.name, updatedStudent.age, updatedStudent.email, updatedStudent.password, updatedStudent.no_of_courses_enrolled, updatedStudent.isActivated ? "activated" : "de-activated");
+                        strcat(write_buffer, buff);
+                        strcat(write_buffer, "\n");
+                    }
+                    break;
+                default :
+                    bzero(write_buffer, sizeof(write_buffer));
+                    strcpy(write_buffer, "Invalid option was selected. Please try again. \n");
+                    break;
+            }
         }
         strcat(write_buffer, "Do you want to continue (yes/no)? : ");
         if(write(socket_fd, write_buffer, strlen(write_buffer)) == -1) {
