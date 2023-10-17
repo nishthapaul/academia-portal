@@ -14,6 +14,7 @@
 #include "../model/student-course.h"
 #include "../dao/course-dao.h"
 
+int deEnrollStudentInCourse(char student_id[], char course_id[]);
 int enrollStudentInCourse(char student_id[], char course_id[]);
 
 void handle_student_operations(int socket_fd, char login_id[]) {
@@ -117,6 +118,32 @@ void handle_student_operations(int socket_fd, char login_id[]) {
                 break;
             case 4 :
                 printf("De-enroll in a course \n");
+                strcpy(write_buffer, "Enter the id of the course: ");
+                write(socket_fd, write_buffer, strlen(write_buffer));
+                read(socket_fd, read_buffer, sizeof(read_buffer));
+                bzero(write_buffer, sizeof(write_buffer));
+                char course_id4[50];
+                strcpy(course_id4, read_buffer);
+
+                if (isCourseIDValid(course_id4)) {
+                    struct Course course = doesCourseExist(course_id4);
+                    if (isCourseEmpty(course)) {
+                        strcpy(write_buffer, "This Course ID is invalid. \nPlease try again with a valid one. \n");
+                    } else {
+                        if (isCourseActivated(course_id4)) {
+                            int status = deEnrollStudentInCourse(login_id, course_id4);
+                            if (status == -1) {
+                                strcpy(write_buffer, "You are not enrolled in this course. Choose any other course.\n");
+                            } else {
+                                strcpy(write_buffer, "============= De enrollment successful !!! ==============\n");
+                            }
+                        } else {
+                            strcpy(write_buffer, "This Course ID is not activated. \nPlease try to enroll in the courses mentioned in choice 1. \n");
+                        }
+                    }
+                } else {
+                    strcpy(write_buffer, "Format of Course ID is incorrect. Please try again. \n");
+                }
                 break;
             default :
                 bzero(write_buffer, sizeof(write_buffer));
@@ -231,6 +258,110 @@ int enrollStudentInCourse(char student_id[], char course_id[]) {
     printf("Updated no of courses enrolled in student.txt file \n");
     lseek(student_fd, -1 * sizeof(struct Student), SEEK_CUR);
     student.no_of_courses_enrolled = student.no_of_courses_enrolled + 1;
+    printf("%d", student.no_of_courses_enrolled);
+    write(student_fd, &student, sizeof(struct Student));
+
+    flockstr1.l_type = F_UNLCK;
+    fcntl(all_courses_fd, F_SETLKW, &flockstr1);
+    flockstr2.l_type = F_UNLCK;
+    fcntl(student_course_fd, F_SETLKW, &flockstr2);
+    flockstr3.l_type = F_UNLCK;
+    fcntl(student_fd, F_SETLKW, &flockstr3);
+
+    printf("All Locks released \n");
+
+    close(all_courses_fd);
+    close(student_course_fd);
+    close(student_fd);
+    return 0;
+}
+
+int deEnrollStudentInCourse(char student_id[], char course_id[]) {
+    int all_courses_fd = open("/Users/nishthapaul/iiitb/academia-portal/data/course.txt", O_RDWR);
+    if (all_courses_fd == -1) {
+		perror("Error in opening the file course.txt. \n");
+	}
+    int courseno = getSuffix(course_id);
+
+    struct flock flockstr1;
+    flockstr1.l_whence = SEEK_SET;
+    flockstr1.l_start =  ( courseno - 1 ) * sizeof(struct Course);
+    flockstr1.l_len = sizeof(struct Course);
+    flockstr1.l_pid = getpid();
+    flockstr1.l_type = F_WRLCK;
+    printf("Waiting to acquire lock on course.txt\n");
+    fcntl(all_courses_fd, F_SETLKW, &flockstr1);
+    printf("Acquired lock on course %s \n", course_id);
+
+    struct Course course;
+    lseek(all_courses_fd, (courseno - 1) * sizeof(struct Course), SEEK_SET);
+    read(all_courses_fd, &course, sizeof(struct Course));
+
+    // ................................................................
+
+    char path[100];
+    sprintf(path, "/Users/nishthapaul/iiitb/academia-portal/courses/%s.txt", course_id);
+    printf("%s \n", path);
+    int student_course_fd = open(path, O_RDWR);
+    if (student_course_fd == -1) {
+		perror("Error in opening the file COxxx.txt. \n");
+	}
+
+    int studentno = getSuffix(student_id);
+
+    struct flock flockstr2;
+    flockstr2.l_whence = SEEK_SET;
+    flockstr2.l_start =  ( studentno - 1 ) * sizeof(struct Student_Course);
+    flockstr2.l_len = sizeof(struct Student_Course);
+    flockstr2.l_pid = getpid();
+    flockstr2.l_type = F_WRLCK;
+    printf("Waiting to acquire lock on courses/%s.txt file \n", course_id);
+    fcntl(student_course_fd, F_SETLKW, &flockstr2);
+    printf("Acquired lock on student %s \n", student_id);
+
+    struct Student_Course std_course;
+    lseek(student_course_fd, (studentno - 1) * sizeof(struct Student_Course), SEEK_SET);
+    read(student_course_fd, &std_course, sizeof(struct Student_Course));
+    if (std_course.hasEnrolled == false) {
+        return -1;
+    }
+
+    // ................................................................
+
+    int student_fd = open("/Users/nishthapaul/iiitb/academia-portal/data/student.txt", O_RDWR);
+    if (student_fd == -1) {
+		perror("Error in opening the file student.txt. \n");
+	}
+
+    struct flock flockstr3;
+    flockstr3.l_whence = SEEK_SET;
+    flockstr3.l_start =  ( studentno - 1 ) * sizeof(struct Student);
+    flockstr3.l_len = sizeof(struct Student);
+    flockstr3.l_pid = getpid();
+    flockstr3.l_type = F_WRLCK;
+    printf("Waiting to acquire lock on student.txt file \n");
+    fcntl(student_fd, F_SETLKW, &flockstr3);
+    printf("Acquired lock on student %s \n", student_id);
+
+    struct Student student;
+    lseek(student_fd, (studentno - 1) * sizeof(struct Student), SEEK_SET);
+    read(student_fd, &student, sizeof(struct Student));
+
+    // ................................................................
+
+    printf("Updated no of filled seats in course.txt file \n");
+    lseek(all_courses_fd, -1 * sizeof(struct Course), SEEK_CUR);
+    course.filled_seats = course.filled_seats - 1;
+    write(all_courses_fd, &course, sizeof(struct Course));
+
+    printf("Updated enrollment status in COxxx.txt file \n");
+    lseek(student_course_fd, -1 * sizeof(struct Student_Course), SEEK_CUR);
+    std_course.hasEnrolled = false;
+    write(student_course_fd, &std_course, sizeof(struct Student_Course));
+
+    printf("Updated no of courses enrolled in student.txt file \n");
+    lseek(student_fd, -1 * sizeof(struct Student), SEEK_CUR);
+    student.no_of_courses_enrolled = student.no_of_courses_enrolled - 1;
     printf("%d", student.no_of_courses_enrolled);
     write(student_fd, &student, sizeof(struct Student));
 
