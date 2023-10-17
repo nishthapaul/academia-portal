@@ -7,12 +7,14 @@
 #include <time.h>
 
 #include "student-ops.h"
+#include "../constants/configs.h"
 #include "../constants/menu.h"
 #include "../constants/view-details.h"
 #include "../model/student.h"
 #include "../model/course.h"
 #include "../model/student-course.h"
 #include "../dao/course-dao.h"
+#include "../dao/student-dao.h"
 
 int deEnrollStudentInCourse(char student_id[], char course_id[]);
 int enrollStudentInCourse(char student_id[], char course_id[]);
@@ -143,6 +145,35 @@ void handle_student_operations(int socket_fd, char login_id[]) {
                     }
                 } else {
                     strcpy(write_buffer, "Format of Course ID is incorrect. Please try again. \n");
+                }
+                break;
+            case 5: 
+                printf("Change password\n");
+                strcpy(write_buffer, PASSWORD_INSTRUCTIONS);
+                strcat(write_buffer, "Enter the new password: ");
+
+                write(socket_fd, write_buffer, strlen(write_buffer));
+                read(socket_fd, read_buffer, sizeof(read_buffer));
+                bzero(write_buffer, sizeof(write_buffer));
+                char password[50];
+                strcpy(password, read_buffer);
+                int result = isPasswordValid(password);
+                if (result == -1) {
+                    strcpy(write_buffer, "Length of the password must be from 5 to 20 characters long. Please try again. \n");
+                } else if (result == -2) {
+                    strcpy(write_buffer, "Password should have atleast one alphabet. Please try again. \n");
+                } else if (result == -3) {
+                    strcpy(write_buffer, "Password should have atleast one digit. Please try again. \n");
+                } else if (result == -4) {
+                    strcpy(write_buffer, "Password should have atleast one special character. Please try again. \n");
+                } else {
+                    struct Student updatedStudent = updateStudentPassword(getSuffix(login_id), password);
+                    strcpy(write_buffer, "Password updated successfully\n");
+                    strcat(write_buffer, "Updated Student details: ");
+                    char buff[1000];
+                    sprintf(buff, STUDENT_DETAILS, updatedStudent.std_id, updatedStudent.name, updatedStudent.age, updatedStudent.email, updatedStudent.password, updatedStudent.no_of_courses_enrolled, updatedStudent.isActivated ? "activated" : "de-activated");
+                    strcat(write_buffer, buff);
+                    strcat(write_buffer, "\n");
                 }
                 break;
             default :
