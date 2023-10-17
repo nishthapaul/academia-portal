@@ -7,9 +7,11 @@
 
 #include "faculty-ops.h"
 #include "../constants/menu.h"
+#include "../constants/configs.h"
 #include "../constants/view-details.h"
 #include "../model/course.h"
 #include "../dao/course-dao.h"
+#include "../dao/faculty-dao.h"
 #include "../commons/common.h"
 
 int createCourse(int socket_fd, char faculty_id[]);
@@ -184,6 +186,35 @@ void handle_faculty_operations(int socket_fd, char faculty_id[]) {
                         sprintf(write_buffer, COURSE_DETAILS, updatedCourse.course_id, updatedCourse.name, updatedCourse.credits, updatedCourse.total_seats, updatedCourse.filled_seats, updatedCourse.faculty_id, updatedCourse.isActivated ? "activated" : "de-activated");
                         strcat(write_buffer, "\n");
                     }
+                }
+                break;
+            case 7: 
+                printf("Change password\n");
+                strcpy(write_buffer, PASSWORD_INSTRUCTIONS);
+                strcat(write_buffer, "Enter the new password: ");
+
+                write(socket_fd, write_buffer, strlen(write_buffer));
+                read(socket_fd, read_buffer, sizeof(read_buffer));
+                bzero(write_buffer, sizeof(write_buffer));
+                char password[50];
+                strcpy(password, read_buffer);
+                int result = isPasswordValid(password);
+                if (result == -1) {
+                    strcpy(write_buffer, "Length of the password must be from 5 to 20 characters long. Please try again. \n");
+                } else if (result == -2) {
+                    strcpy(write_buffer, "Password should have atleast one alphabet. Please try again. \n");
+                } else if (result == -3) {
+                    strcpy(write_buffer, "Password should have atleast one digit. Please try again. \n");
+                } else if (result == -4) {
+                    strcpy(write_buffer, "Password should have atleast one special character. Please try again. \n");
+                } else {
+                    struct Faculty updatedFaculty = updateFacultyPassword(getSuffix(faculty_id), password);
+                    strcpy(write_buffer, "Password updated successfully\n");
+                    strcat(write_buffer, "Updated Course details: ");
+                    char buff[1000];
+                    sprintf(buff, FACULTY_DETAILS, updatedFaculty.faculty_id, updatedFaculty.name, updatedFaculty.email, updatedFaculty.dept, updatedFaculty.password);
+                    strcat(write_buffer, buff);
+                    strcat(write_buffer, "\n");
                 }
                 break;
             default :

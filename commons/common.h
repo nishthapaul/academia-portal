@@ -9,5 +9,6 @@ int getSuffix(char input_id[]);
 int isStudentEmpty(struct Student student);
 int isFacultyEmpty(struct Faculty faculty);
 int isCourseEmpty(struct Course course);
+int isPasswordValid(char password[]);
 
 #endif

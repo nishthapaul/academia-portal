@@ -137,6 +137,23 @@ struct Faculty updateFacultyDepartment(int facultyno, char dept[]) {
     return faculty;
 }
 
+struct Faculty updateFacultyPassword(int facultyno, char password[]) {
+    int fd = open("/Users/nishthapaul/iiitb/academia-portal/data/faculty.txt", O_RDWR);
+    if (fd == -1) {
+		perror("Error in opening the file faculty.txt. \n");
+	}
+    struct Faculty faculty;
+
+    lseek(fd, (facultyno - 1) * sizeof(struct Faculty), SEEK_SET);
+    read(fd, &faculty, sizeof(struct Faculty));
+    strcpy(faculty.password, password);
+    lseek(fd, -1 * sizeof(struct Faculty), SEEK_CUR);
+    write(fd, &faculty, sizeof(struct Faculty));
+
+    close(fd);
+    return faculty;
+}
+
 bool isFacultyAuthenticated(char login_id[], char password[]) {
     int fd = open("/Users/nishthapaul/iiitb/academia-portal/data/faculty.txt", O_RDONLY);
     if (fd == -1) {

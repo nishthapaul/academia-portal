@@ -36,9 +36,9 @@ int isPasswordValid(char password[]) {
         return -1;
     }
     for (int i = 0; i < n; i++) {
-        if ('a' <= password[i]  && password[i] >= 'z') {
+        if ('a' <= password[i] && password[i] <= 'z') {
             alpha++;
-        } else if ('0' <= password[i]  && password[i] >= '1') {
+        } else if ((0 <= (password[i] - '0')) && ((password[i] - '0') <= 9)) {
             digit++;
         } else if (password[i] == '#' || password[i] == '$' || password[i] == '@') {
             special++;

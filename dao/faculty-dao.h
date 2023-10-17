@@ -10,6 +10,7 @@ struct Faculty getFacultyDetails(char facultyno_string[]);
 struct Faculty updateFacultyName(int facultyno, char name[]);
 struct Faculty updateFacultyEmail(int facultyno, char email[]);
 struct Faculty updateFacultyDepartment(int facultyno, char dept[]);
+struct Faculty updateFacultyPassword(int facultyno, char password[]);
 
 bool isFacultyAuthenticated(char login_id[], char password[]);
 
