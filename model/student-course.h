@@ -7,7 +7,6 @@ struct Student_Course {
     bool hasEnrolled;
     time_t enrolledTimestamp;
 };
-bjkbk
 // de enrolled timestamp is of no use
 
 #endif
