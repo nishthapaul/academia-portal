@@ -12,6 +12,7 @@
 void generateCourseId(char* new_id);
 void incrementCourseId(const char* input_courseid, char* new_courseid, int size);
 void insertAllStudentsInCourse(char course_id[]);
+int compareTimestamps(const void* a, const void* b);
 
 int insertCourse(char faculty_id[], char name[], int total_seats, int credits) {
     char new_id[6];
@@ -158,7 +159,7 @@ struct Course updateCourseActivationStatus(char course_id[], bool isActive) {
     return course;
 }
 
-struct Course updateCourseTotalSeats(char course_id[], int seats) {
+struct Course updateCourseTotalSeats(char course_id[], int new_total_seats) {
     int fd = open("/Users/nishthapaul/iiitb/academia-portal/data/course.txt", O_RDWR);
     if (fd == -1) {
 		perror("Error in opening the file course.txt. \n");
@@ -168,7 +169,7 @@ struct Course updateCourseTotalSeats(char course_id[], int seats) {
     int courseno = getSuffix(course_id);
     lseek(fd, (courseno - 1) * sizeof(struct Course), SEEK_SET);
     read(fd, &course, sizeof(struct Course));
-    course.total_seats = seats;
+    course.total_seats = new_total_seats;
     lseek(fd, -1 * sizeof(struct Course), SEEK_CUR);
     write(fd, &course, sizeof(struct Course));
 
@@ -198,9 +199,7 @@ void insertStudentInAllCourses(char student_id[]) {
     strcpy(std_course.std_id, student_id);
     std_course.hasEnrolled = false;
 
-    time_t currentTimestamp;
-    time(&currentTimestamp);
-    std_course.enrolledTimestamp = currentTimestamp;
+    std_course.enrolledTimestamp = 0;
 
     int all_courses_fd = open("/Users/nishthapaul/iiitb/academia-portal/data/course.txt", O_RDONLY);
     if (all_courses_fd == -1) {
@@ -307,4 +306,70 @@ void insertAllStudentsInCourse(char course_id[]) {
 
     close(student_fd);
     close(student_course_fd);
+}
+
+void deEnrollAllStudentsInCourse(char course_id[]) {
+    char path[100];
+    sprintf(path, "/Users/nishthapaul/iiitb/academia-portal/courses/%s.txt", course_id);
+    printf("%s \n", path);
+    int student_course_fd = open(path, O_RDWR);
+
+    struct Student_Course student_course;
+    bzero(&student_course, sizeof(struct Student_Course));
+    while (read(student_course_fd, &student_course, sizeof(struct Student_Course)) > 0) {
+        deEnrollStudentInCourse(student_course.std_id, course_id);
+    }
+
+    close(student_course_fd);
+}
+
+void deEnrollStudents(int reduced_seats, char course_id[]) {
+    char path[100];
+    sprintf(path, "/Users/nishthapaul/iiitb/academia-portal/courses/%s.txt", course_id);
+    printf("%s \n", path);
+    int student_course_fd = open(path, O_RDWR);
+
+    // store student_course array which have enrolled
+    struct Student_Course* std_course_array = NULL;
+    int num_matches = 0;
+    struct Student_Course std_course;
+
+    while (read(student_course_fd, &std_course, sizeof(struct Student_Course)) > 0) {
+        if (std_course.hasEnrolled == true) {
+            std_course_array = realloc(std_course_array, (num_matches + 1) * sizeof(struct Student_Course));
+            if (std_course_array == NULL) {
+                perror("Memory allocation error");
+                close(student_course_fd);
+                free(std_course_array);
+                return;
+            }
+            std_course_array[num_matches] = std_course;
+            (num_matches)++;
+        }
+    }
+
+    qsort(std_course_array, num_matches, sizeof(struct Student_Course), compareTimestamps);
+
+    if (num_matches > 0) {
+        for (int i = 0; i < reduced_seats; i++) {
+            deEnrollStudentInCourse(std_course_array[i].std_id, course_id);
+        }
+    }
+
+    free(std_course_array);
+
+}
+
+int compareTimestamps(const void* a, const void* b) {
+    const struct Student_Course* std_course_a = (const struct Student_Course*)a;
+    const struct Student_Course* std_course_b = (const struct Student_Course*)b;
+
+    // Compare timestamps in descending order
+    if (std_course_a->enrolledTimestamp > std_course_b->enrolledTimestamp) {
+        return -1;
+    } else if (std_course_a->enrolledTimestamp < std_course_b->enrolledTimestamp) {
+        return 1;
+    } else {
+        return 0;
+    }
 }

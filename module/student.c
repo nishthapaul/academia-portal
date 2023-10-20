@@ -22,14 +22,20 @@ int enrollStudentInCourse(char student_id[], char course_id[]);
 void handle_student_operations(int socket_fd, char login_id[]) {
     printf("handle_student_operations");
     char read_buffer[1000], write_buffer[1000];
+    int itr = 0;
 
     do {
         bzero(write_buffer, sizeof(write_buffer));
+
+        itr++;
+        if (itr == 1) {
+            strcpy(write_buffer, "======= You are successfully authenticated !!! =======\n");
+        }
     
         if (isStudentActivated(login_id) == true)
-            strcpy(write_buffer, STUDENT_MENU);
+            strcat(write_buffer, STUDENT_MENU);
         else 
-            strcpy(write_buffer, DEACTIVATED_STUDENT_MENU);
+            strcat(write_buffer, DEACTIVATED_STUDENT_MENU);
 
         if (write(socket_fd, write_buffer, strlen(write_buffer)) == -1)
             perror("Error while displaying student menu to the user");

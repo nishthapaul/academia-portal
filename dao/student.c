@@ -144,19 +144,34 @@ struct Student updateStudentEmail(int rollno, char email[]) {
 }
 
 struct Student updateStudentAccountStatus(int rollno, bool isActive) {
-    int fd = open("/Users/nishthapaul/iiitb/academia-portal/data/student.txt", O_RDWR);
-    if (fd == -1) {
+    int student_fd = open("/Users/nishthapaul/iiitb/academia-portal/data/student.txt", O_RDWR);
+    if (student_fd == -1) {
 		perror("Error in opening the file student.txt. \n");
 	}
     struct Student student;
 
-    lseek(fd, (rollno - 1) * sizeof(struct Student), SEEK_SET);
-    read(fd, &student, sizeof(struct Student));
+    lseek(student_fd, (rollno - 1) * sizeof(struct Student), SEEK_SET);
+    read(student_fd, &student, sizeof(struct Student));
     student.isActivated = isActive;
-    lseek(fd, -1 * sizeof(struct Student), SEEK_CUR);
-    write(fd, &student, sizeof(struct Student));
+    lseek(student_fd, -1 * sizeof(struct Student), SEEK_CUR);
+    write(student_fd, &student, sizeof(struct Student));
 
-    close(fd);
+    // if this is false - de activate, then call de enroll from all enrolled courses
+    int course_fd = open("/Users/nishthapaul/iiitb/academia-portal/data/course.txt", O_RDWR);
+    if (course_fd == -1) {
+		perror("Error in opening the file course.txt. \n");
+	}
+    struct Course course;
+
+    char student_id[6];
+    sprintf(student_id, "MT%03d", rollno);
+
+    while (read(course_fd, &course, sizeof(struct Course)) > 0) {
+        deEnrollStudentInCourse(student_id, course.course_id);
+    }
+
+    close(student_fd);
+    close(course_fd);
     return student;
 }
 

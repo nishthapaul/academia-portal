@@ -19,12 +19,18 @@ int createCourse(int socket_fd, char faculty_id[]);
 void handle_faculty_operations(int socket_fd, char faculty_id[]) {
     printf("handle_faculty_operations");
     char read_buffer[1000], write_buffer[1000];
-    int bytes_rcvd, bytes_sent; // TODO: remove this useless line
+    int bytes_rcvd, bytes_sent;
+
+    int itr = 0;
 
     do {
         bzero(write_buffer, sizeof(write_buffer));
 
-        strcpy(write_buffer, FACULTY_MENU);
+        itr++;
+        if (itr == 1) {
+            strcpy(write_buffer, "======= You are successfully authenticated !!! =======\n");
+        }
+        strcat(write_buffer, FACULTY_MENU);
 
         if (write(socket_fd, write_buffer, strlen(write_buffer)) == -1)
             perror("Error while displaying faculty menu to the user");
@@ -97,8 +103,9 @@ void handle_faculty_operations(int socket_fd, char faculty_id[]) {
                         strcpy(write_buffer, "This course is not offered by you. \nPlease try again with your offered course. \n");
                     } else {
                         struct Course updatedCourse = updateCourseActivationStatus(course.course_id, false);
-                        // TODO: update students-course files too.
-                        // update free seats in a course file
+
+                        deEnrollAllStudentsInCourse(updatedCourse.course_id);
+
                         strcpy(write_buffer, "Course de-activated successfully \n");
                         strcat(write_buffer, "Updated Course details: ");
                         sprintf(write_buffer, COURSE_DETAILS, updatedCourse.course_id, updatedCourse.name, updatedCourse.credits, updatedCourse.total_seats, updatedCourse.filled_seats, updatedCourse.faculty_id, updatedCourse.isActivated ? "activated" : "de-activated");
@@ -170,7 +177,7 @@ void handle_faculty_operations(int socket_fd, char faculty_id[]) {
                 write(socket_fd, write_buffer, strlen(write_buffer));
                 read(socket_fd, read_buffer, sizeof(read_buffer));
                 bzero(write_buffer, sizeof(write_buffer));
-                int total_seats = atoi(read_buffer);
+                int new_total_seats = atoi(read_buffer);
 
                 if (!isCourseIDValid(course_id6)) {
                     strcpy(write_buffer, "Format of Course ID is incorrect. Please try again. \n");
@@ -179,8 +186,19 @@ void handle_faculty_operations(int socket_fd, char faculty_id[]) {
                     if (isCourseEmpty(course)) {
                         strcpy(write_buffer, "This course is not offered by you. \nPlease try again with your offered course. \n");
                     } else {
-                        struct Course updatedCourse = updateCourseTotalSeats(course.course_id, total_seats);
-                        // TODO: de-enroll latest enrolled students
+                        int old_total_seats = course.total_seats;
+                        int old_filled_seats = course.filled_seats;
+                        struct Course updatedCourse;
+                        int reduced_seats = 0;
+                        if (new_total_seats >= old_total_seats) {
+                            updatedCourse = updateCourseTotalSeats(course.course_id, new_total_seats);
+                        } else if (new_total_seats >= old_filled_seats) {
+                            updatedCourse = updateCourseTotalSeats(course.course_id, new_total_seats);
+                        } else {
+                            reduced_seats = old_filled_seats - new_total_seats;
+                            updatedCourse = updateCourseTotalSeats(course.course_id, new_total_seats);
+                            deEnrollStudents(reduced_seats, course_id6);
+                        }
                         strcpy(write_buffer, "Total seats in a course are updated successfully \n");
                         strcat(write_buffer, "Updated Course details: ");
                         sprintf(write_buffer, COURSE_DETAILS, updatedCourse.course_id, updatedCourse.name, updatedCourse.credits, updatedCourse.total_seats, updatedCourse.filled_seats, updatedCourse.faculty_id, updatedCourse.isActivated ? "activated" : "de-activated");

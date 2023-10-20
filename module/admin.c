@@ -23,11 +23,16 @@ void handle_admin_operations(int socket_fd) {
     printf("in handle_admin_operations \n");
     char read_buffer[1000], write_buffer[1000];
     int bytes_rcvd, bytes_sent;
+    int itr = 0;
 
     do {
         bzero(write_buffer, sizeof(write_buffer));
 
-        strcpy(write_buffer, ADMIN_MENU);
+        itr++;
+        if (itr == 1) {
+            strcpy(write_buffer, "======= You are successfully authenticated !!! =======\n");
+        }
+        strcat(write_buffer, ADMIN_MENU);
 
         if (write(socket_fd, write_buffer, strlen(write_buffer)) == -1)
             perror("Error while displaying admin menu to the user");
@@ -55,7 +60,6 @@ void handle_admin_operations(int socket_fd) {
                 strcat(write_buffer, "========== Login Id of the student is : ");
                 strcat(write_buffer, student_id);
                 strcat(write_buffer, " ========\n");
-                // TODO: add row in all courses txt files
                 break;
             case 2 :
                 printf("View student details \n");
@@ -247,7 +251,7 @@ struct Student updateStudentActivateStatus(int socket_fd, bool isActive) {
     bzero(write_buffer, sizeof(write_buffer));
     bzero(read_buffer, sizeof(read_buffer));
 
-    strcat(write_buffer, "Enter the roll number of the student whose details \nyou want want to update: ");
+    strcat(write_buffer, "Enter the roll number of the student whose details \nyou want to update: ");
     if (write(socket_fd, write_buffer, strlen(write_buffer)) == -1) {
         perror("Error while asking the client to enter roll no to update student details");
     }
